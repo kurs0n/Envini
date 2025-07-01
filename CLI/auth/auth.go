@@ -164,7 +164,8 @@ func writeTokensToFile(oauthAccessTokenSuccessResponse *OauthAccessTokenSuccessR
 	}
 	err = os.WriteFile("./temp/tokens.json", jsonBytes, 0644)
 	if err != nil {
-		panic(err)
+		fmt.Println("There is no file tokens.json. Please authenticate first using the auth command.")
+		return
 	}
 }
 
@@ -180,7 +181,8 @@ func clearTokens() {
 func retrieveTokens() OauthAccessTokenSuccessResponse {
 	bytes, err := os.ReadFile("./temp/tokens.json")
 	if err != nil {
-		panic(err)
+		fmt.Println("There is no file tokens.json. Please authenticate first using the auth command.")
+		os.Exit(0)
 	}
 	var data OauthAccessTokenSuccessResponse
 	err = json.Unmarshal(bytes, &data)

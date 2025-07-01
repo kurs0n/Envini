@@ -24,7 +24,7 @@ type Owner struct {
 
 func ListRepos() {
 	accessToken := auth.GetAccessToken()
-	uri := "https://api.github.com/user/repos"
+	uri := "https://api.github.com/user/repos?per_page=100"
 
 	client := &http.Client{}
 	r, _ := http.NewRequest(http.MethodGet, uri, nil)
