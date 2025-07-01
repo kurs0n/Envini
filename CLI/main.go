@@ -2,6 +2,7 @@ package main
 
 import (
 	"Envini-CLI/auth"
+	"Envini-CLI/help"
 	"Envini-CLI/list"
 	"Envini-CLI/upload"
 	"fmt"
@@ -14,7 +15,7 @@ func main() {
 	godotenv.Load()
 	switch os.Args[1] {
 	case "help":
-		fmt.Println("test")
+		help.DisplayHelp()
 	case "auth":
 		fmt.Println("Authorization process enabled!")
 		auth.Authorize()

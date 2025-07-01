@@ -62,20 +62,16 @@ func openURL(url string) error {
 		args = []string{"/c", "start"}
 	case "darwin":
 		cmd = "open"
-	default: // "linux", "freebsd", "openbsd", "netbsd"
-		// Check if running under WSL
+	default:
 		if isWSL() {
-			// Use 'cmd.exe /c start' to open the URL in the default Windows browser
 			cmd = "cmd.exe"
 			args = []string{"/c", "start", url}
 		} else {
-			// Use xdg-open on native Linux environments
 			cmd = "xdg-open"
 			args = []string{url}
 		}
 	}
 	if len(args) > 1 {
-		// args[0] is used for 'start' command argument, to prevent issues with URLs starting with a quote
 		args = append(args[:1], append([]string{""}, args[1:]...)...)
 	}
 	return exec.Command(cmd, args...).Start()
@@ -156,6 +152,11 @@ func checkForTokens(deviceCodeResponse DeviceCodeResponse, interval int) *OauthA
 }
 
 func writeTokensToFile(oauthAccessTokenSuccessResponse *OauthAccessTokenSuccessResponse) {
+	err := os.MkdirAll("./temp", 0755)
+	if err != nil {
+		fmt.Println("Error creating directory:", err)
+		return
+	}
 	jsonBytes, err := json.Marshal(oauthAccessTokenSuccessResponse)
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -168,9 +169,11 @@ func writeTokensToFile(oauthAccessTokenSuccessResponse *OauthAccessTokenSuccessR
 }
 
 func clearTokens() {
-	err := os.Remove("./temp/tokens.json")
-	if err != nil {
-		log.Fatal(err)
+	if _, err := os.Stat("./temp/tokens.json"); err == nil {
+		err := os.Remove("./temp/tokens.json")
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
