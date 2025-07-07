@@ -80,7 +80,9 @@ func openURL(url string) error {
 func requestDeviceCode() DeviceCodeResponse {
 	uri := "https://github.com/login/device/code"
 	data := url.Values{}
+
 	data.Set("client_id", os.Getenv("CLIENT_ID"))
+	data.Set("scope", "codespace")
 
 	client := &http.Client{}
 	r, _ := http.NewRequest(http.MethodPost, uri, strings.NewReader(data.Encode()))
@@ -199,6 +201,7 @@ func RefreshTokens() { // write additional logic to check whenever refresh_token
 	data.Set("client_id", os.Getenv("CLIENT_ID"))
 	data.Set("grant_type", "refresh_token")
 	data.Set("refresh_token", oauthAccessTokenSuccessResponse.RefreshToken)
+	data.Set("scope", "codespace")
 
 	client := &http.Client{}
 	r, _ := http.NewRequest(http.MethodPost, uri, strings.NewReader(data.Encode()))
