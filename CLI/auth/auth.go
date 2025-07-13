@@ -82,7 +82,6 @@ func requestDeviceCode() DeviceCodeResponse {
 	data := url.Values{}
 
 	data.Set("client_id", os.Getenv("CLIENT_ID"))
-	data.Set("scope", "codespace")
 
 	client := &http.Client{}
 	r, _ := http.NewRequest(http.MethodPost, uri, strings.NewReader(data.Encode()))

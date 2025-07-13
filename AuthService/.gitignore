@@ -1,0 +1,35 @@
+.env
+# Ignore environment files
+.env
+.env.*
+
+# Ignore Go build artifacts
+/bin/
+/build/
+/dist/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Ignore dependency directories
+/vendor/
+
+# Ignore IDE/editor files
+*.swp
+*.swo
+*.idea/
+*.vscode/
+*.DS_Store
+
+# Ignore logs
+*.log
+
+# Ignore coverage files
+coverage.out
+
+# Ignore generated files
+*.pb.go

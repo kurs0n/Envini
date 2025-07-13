@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+package authservice;
+
+option go_package = "github.com/kurs0n/AuthService/proto;authservice";
+
+service AuthService {
+  // Initiate GitHub device flow
+  rpc StartDeviceFlow (StartDeviceFlowRequest) returns (StartDeviceFlowResponse);
+
+  // Poll for token after user authorizes
+  rpc PollForToken (PollForTokenRequest) returns (PollForTokenResponse);
+
+  // Refresh access token
+  rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenResponse);
+
+  // Validate session
+  rpc ValidateSession (ValidateSessionRequest) returns (ValidateSessionResponse);
+
+  // Logout (clear session)
+  rpc Logout (LogoutRequest) returns (LogoutResponse);
+
+}
+
+message StartDeviceFlowRequest {
+  string client_id = 1;
+}
+
+message StartDeviceFlowResponse {
+  string device_code = 1;
+  string user_code = 2;
+  string verification_uri = 3;
+  int32 expires_in = 4;
+  int32 interval = 5;
+}
+
+message PollForTokenRequest {
+  string device_code = 1;
+  string client_id = 2;
+}
+
+message PollForTokenResponse {
+  string session_id = 1;
+  string jwt = 2;
+  string error = 3;
+  string error_description = 4;
+}
+
+message RefreshTokenRequest {
+  string jwt = 1;
+}
+
+message RefreshTokenResponse {
+  string access_token = 1;
+  int64 expires_in = 2;
+  string token_type = 3;
+  string scope = 4;
+  string error = 5;
+  string error_description = 6;
+}
+
+message ValidateSessionRequest {
+  string jwt = 1;
+}
+
+message ValidateSessionResponse {
+  bool valid = 1;
+  string access_token = 2;
+  string error = 3;
+}
+
+message LogoutRequest {
+  string jwt = 1;
+}
+
+message LogoutResponse {
+  bool success = 1;
+  string error = 2;
+}

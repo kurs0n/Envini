@@ -1,0 +1,50 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Build output
+/build/
+bin/
+dist/
+
+# Dependency directories
+vendor/
+node_modules/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE/editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Go specific
+*.log
+*.coverprofile
+*.test
+*.tmp
+*.cache
+*.mod
+*.sum
+
+# Local env files
+.env
+.env.*
+
+# Protobuf generated files
+proto/*.pb.go
+
+# Ignore everything except source
+!.gitignore
+!main.go
+!proto/
+!go.mod
+!go.sum
