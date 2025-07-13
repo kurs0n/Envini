@@ -2,7 +2,6 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { Client, ClientGrpc, Transport } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 
-// Response interfaces based on the proto definitions
 interface Repo {
   id: number;
   name: string;

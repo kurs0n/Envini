@@ -4,9 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"os/exec"
 	"runtime"
@@ -14,33 +12,33 @@ import (
 	"time"
 )
 
-type DeviceCodeResponse struct {
-	DeviceCode      string `json:"device_code"`
-	ExpiresIn       int    `json:"expires_in"`
-	UserCode        string `json:"user_code"`
-	VerificationUri string `json:"verification_uri"`
+const BackendGateURL = "http://localhost:3000"
+
+type BackendGateAuthResponse struct {
+	VerificationUri string `json:"verificationUri"`
+	UserCode        string `json:"userCode"`
+	DeviceCode      string `json:"deviceCode"`
+	ExpiresIn       int    `json:"expiresIn"`
 	Interval        int    `json:"interval"`
 }
 
-type OauthAccessTokenSuccessResponse struct {
-	AccessToken           string `json:"access_token"`
-	ExpiresIn             int64  `json:"expires_in"`
-	RefreshToken          string `json:"refresh_token"`
-	RefreshTokenExpiresIn int64  `json:"refresh_token_expires_in"`
-	TokenType             string `json:"token_type"`
-	Scope                 string `json:"scope"`
+type BackendGateTokenResponse struct {
+	SessionId        string `json:"sessionId"`
+	Jwt              string `json:"jwt"`
+	Error            string `json:"error,omitempty"`
+	ErrorDescription string `json:"errorDescription,omitempty"`
 }
 
-type BadCredentialsResponse struct {
-	Message          string `json:"message"`
-	DocumentationUrl string `json:"documentation_url"`
-	Status           string `json:"status"`
+type BackendGateAuthTokenResponse struct {
+	AccessToken      string `json:"accessToken"`
+	TokenType        string `json:"tokenType"`
+	Scope            string `json:"scope"`
+	Error            string `json:"error,omitempty"`
+	ErrorDescription string `json:"errorDescription,omitempty"`
 }
 
-type OauthAccessTokenErrorResponse struct {
-	Error            string `json:"error"`
-	ErrorDescription string `json:"error_description"`
-	ErrorUri         string `json:"error_uri"`
+type StoredAuthData struct {
+	Jwt string `json:"jwt"`
 }
 
 // isWSL checks if the Go program is running inside Windows Subsystem for Linux
@@ -77,181 +75,230 @@ func openURL(url string) error {
 	return exec.Command(cmd, args...).Start()
 }
 
-func requestDeviceCode() DeviceCodeResponse {
-	uri := "https://github.com/login/device/code"
-	data := url.Values{}
-
-	data.Set("client_id", os.Getenv("CLIENT_ID"))
-
-	client := &http.Client{}
-	r, _ := http.NewRequest(http.MethodPost, uri, strings.NewReader(data.Encode()))
-	r.Header.Add("Accept", "application/json")
-	resp, _ := client.Do(r)
+func startGitHubAuth() (*BackendGateAuthResponse, error) {
+	resp, err := http.Post(BackendGateURL+"/auth/github/start", "application/json", nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to start GitHub auth: %v", err)
+	}
 	defer resp.Body.Close()
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		panic("Wrong response")
+		return nil, fmt.Errorf("failed to read response: %v", err)
 	}
-	var deviceCodeResponse DeviceCodeResponse
-	json.Unmarshal(body, &deviceCodeResponse)
-	return deviceCodeResponse
+
+	var authResponse BackendGateAuthResponse
+	if err := json.Unmarshal(body, &authResponse); err != nil {
+		return nil, fmt.Errorf("failed to parse response: %v", err)
+	}
+
+	return &authResponse, nil
 }
 
-func requestToken(deviceCode string) (*OauthAccessTokenSuccessResponse, *OauthAccessTokenErrorResponse) {
-	uri := "https://github.com/login/oauth/access_token"
-	data := url.Values{}
-	data.Set("client_id", os.Getenv("CLIENT_ID"))
-	data.Set("device_code", deviceCode)
-	data.Set("grant_type", "urn:ietf:params:oauth:grant-type:device_code")
-
-	client := &http.Client{}
-	r, _ := http.NewRequest(http.MethodPost, uri, strings.NewReader(data.Encode()))
-	r.Header.Add("Accept", "application/json")
-	resp, _ := client.Do(r)
+func pollForToken(deviceCode string) (*BackendGateTokenResponse, error) {
+	resp, err := http.Get(fmt.Sprintf("%s/auth/github/poll?deviceCode=%s", BackendGateURL, deviceCode))
+	if err != nil {
+		return nil, fmt.Errorf("failed to poll for token: %v", err)
+	}
 	defer resp.Body.Close()
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		panic("Wrong response")
+		return nil, fmt.Errorf("failed to read response: %v", err)
 	}
 
-	var oauthAccessTokenErrorResponse OauthAccessTokenErrorResponse
-	var oauthAccessTokenSuccessResponse OauthAccessTokenSuccessResponse
-	err = json.Unmarshal(body, &oauthAccessTokenErrorResponse)
-	if oauthAccessTokenErrorResponse.Error == "" {
-		json.Unmarshal(body, &oauthAccessTokenSuccessResponse)
-		return &oauthAccessTokenSuccessResponse, nil
-
-	} else if err != nil {
-		panic("Something went wrong")
-	} else {
-		return nil, &oauthAccessTokenErrorResponse
+	var tokenResponse BackendGateTokenResponse
+	if err := json.Unmarshal(body, &tokenResponse); err != nil {
+		return nil, fmt.Errorf("failed to parse response: %v", err)
 	}
+
+	return &tokenResponse, nil
 }
 
-func checkForTokens(deviceCodeResponse DeviceCodeResponse, interval int) *OauthAccessTokenSuccessResponse {
+func startSpinner(stopChan <-chan struct{}) {
+	spinner := []rune{'|', '/', '-', '\\'}
+	idx := 0
 	for {
-		successResponse, errorResponse := requestToken(deviceCodeResponse.DeviceCode)
-		if successResponse != nil {
-			return successResponse
+		select {
+		case <-stopChan:
+			fmt.Print("\r")
+			return
+		default:
+			fmt.Printf("\rWaiting for authorization... %c", spinner[idx%len(spinner)])
+			time.Sleep(120 * time.Millisecond)
+			idx++
+		}
+	}
+}
+
+func checkForTokens(authResponse *BackendGateAuthResponse) *BackendGateTokenResponse {
+	stopSpinner := make(chan struct{})
+	go startSpinner(stopSpinner)
+	defer func() {
+		close(stopSpinner)
+		fmt.Print("\r")
+	}()
+
+	for {
+		tokenResponse, err := pollForToken(authResponse.DeviceCode)
+		if err != nil {
+			fmt.Printf("\nError polling for token: %v\n", err)
+			time.Sleep(time.Duration(authResponse.Interval) * time.Second)
+			continue
 		}
 
-		switch errorResponse.Error {
+		if tokenResponse.Error == "" {
+			return tokenResponse
+		}
+
+		switch tokenResponse.Error {
 		case "authorization_pending":
-			time.Sleep(time.Duration(interval) * time.Second)
+			time.Sleep(time.Duration(authResponse.Interval) * time.Second)
 		case "slow_down":
-			time.Sleep(time.Duration(interval) * time.Second)
+			time.Sleep(time.Duration(authResponse.Interval) * time.Second)
 		case "expired_token":
-			fmt.Println("The device code has expired. Please run `login` again.")
+			fmt.Println("\nThe device code has expired. Please run `auth` again.")
 			os.Exit(1)
 		case "access_denied":
-			fmt.Println("Login cancelled by user.")
-			panic("error")
+			fmt.Println("\nLogin cancelled by user.")
+			os.Exit(1)
 		default:
-			time.Sleep(time.Duration(interval) * time.Second)
+			fmt.Printf("\nError: %s - %s\n", tokenResponse.Error, tokenResponse.ErrorDescription)
+			time.Sleep(time.Duration(authResponse.Interval) * time.Second)
 		}
 	}
 }
 
-func writeTokensToFile(oauthAccessTokenSuccessResponse *OauthAccessTokenSuccessResponse) {
+func writeJwtToFile(jwt string) {
 	err := os.MkdirAll("./temp", 0755)
 	if err != nil {
 		fmt.Println("Error creating directory:", err)
 		return
 	}
-	jsonBytes, err := json.Marshal(oauthAccessTokenSuccessResponse)
+
+	authData := StoredAuthData{Jwt: jwt}
+	jsonBytes, err := json.Marshal(authData)
 	if err != nil {
-		fmt.Println("Error:", err)
+		fmt.Println("Error marshaling JWT:", err)
 		return
 	}
-	err = os.WriteFile("./temp/tokens.json", jsonBytes, 0644)
+
+	err = os.WriteFile("./temp/auth.json", jsonBytes, 0644)
 	if err != nil {
-		fmt.Println("There is no file tokens.json. Please authenticate first using the auth command.")
+		fmt.Println("Error writing auth file:", err)
 		return
 	}
 }
 
-func clearTokens() {
-	if _, err := os.Stat("./temp/tokens.json"); err == nil {
-		err := os.Remove("./temp/tokens.json")
+func clearAuth() {
+	if _, err := os.Stat("./temp/auth.json"); err == nil {
+		err := os.Remove("./temp/auth.json")
 		if err != nil {
-			log.Fatal(err)
+			fmt.Println("Error removing auth file:", err)
 		}
 	}
 }
 
-func retrieveTokens() OauthAccessTokenSuccessResponse {
-	bytes, err := os.ReadFile("./temp/tokens.json")
+func retrieveJwt() string {
+	bytes, err := os.ReadFile("./temp/auth.json")
 	if err != nil {
-		fmt.Println("There is no file tokens.json. Please authenticate first using the auth command.")
-		os.Exit(0)
+		fmt.Println("No auth file found. Please authenticate first using the auth command.")
+		os.Exit(1)
 	}
-	var data OauthAccessTokenSuccessResponse
-	err = json.Unmarshal(bytes, &data)
-	if err != nil {
-		panic(err)
+
+	var authData StoredAuthData
+	if err := json.Unmarshal(bytes, &authData); err != nil {
+		fmt.Println("Error parsing auth file:", err)
+		os.Exit(1)
 	}
-	return data
+
+	return authData.Jwt
 }
 
-func RefreshTokens() { // write additional logic to check whenever refresh_token is expired
-	oauthAccessTokenSuccessResponse := retrieveTokens()
-	uri := "https://github.com/login/oauth/access_token"
-	data := url.Values{}
-	data.Set("client_id", os.Getenv("CLIENT_ID"))
-	data.Set("grant_type", "refresh_token")
-	data.Set("refresh_token", oauthAccessTokenSuccessResponse.RefreshToken)
-	data.Set("scope", "codespace")
-
-	client := &http.Client{}
-	r, _ := http.NewRequest(http.MethodPost, uri, strings.NewReader(data.Encode()))
-	r.Header.Add("Accept", "application/json")
-	resp, _ := client.Do(r)
+func validateSession(jwt string) bool {
+	resp, err := http.Get(fmt.Sprintf("%s/auth/validate?jwt=%s", BackendGateURL, jwt))
+	if err != nil {
+		return false
+	}
 	defer resp.Body.Close()
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		panic("Wrong response")
+		return false
 	}
-	err = json.Unmarshal(body, &oauthAccessTokenSuccessResponse)
-	if err != nil {
-		panic("Wrong parsing")
+
+	var validationResponse struct {
+		Valid bool   `json:"valid"`
+		Error string `json:"error,omitempty"`
 	}
-	writeTokensToFile(&oauthAccessTokenSuccessResponse)
+
+	if err := json.Unmarshal(body, &validationResponse); err != nil {
+		return false
+	}
+
+	return validationResponse.Valid
 }
 
-func IfRefreshIsRequired() bool {
-	OauthAccessTokenSuccessResponse := retrieveTokens()
-	uri := "https://api.github.com/user/repos"
-
-	client := &http.Client{}
-	r, _ := http.NewRequest(http.MethodGet, uri, nil)
-	r.Header.Add("Accept", "application/vnd.github+json")
-	r.Header.Add("X-GitHub-Api-Version", "2022-11-28")
-	r.Header.Add("Authorization", "Bearer "+OauthAccessTokenSuccessResponse.AccessToken)
-
-	resp, _ := client.Do(r)
-	body, err := io.ReadAll(resp.Body)
+func getAuthToken(jwt string) (*BackendGateAuthTokenResponse, error) {
+	resp, err := http.Get(fmt.Sprintf("%s/auth/token?jwt=%s", BackendGateURL, jwt))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get auth token: %v", err)
+	}
 	defer resp.Body.Close()
-	if err != nil {
-		panic("Wrong Response")
-	}
-	var badCredentialsResponse BadCredentialsResponse
-	json.Unmarshal(body, &badCredentialsResponse)
-	if badCredentialsResponse.Message == "Bad credentials" {
-		return true
-	}
-	return false
-}
 
-func GetAccessToken() string {
-	return retrieveTokens().AccessToken
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response: %v", err)
+	}
+
+	var tokenResponse BackendGateAuthTokenResponse
+	if err := json.Unmarshal(body, &tokenResponse); err != nil {
+		return nil, fmt.Errorf("failed to parse response: %v", err)
+	}
+
+	return &tokenResponse, nil
 }
 
 func Authorize() {
-	clearTokens()
-	deviceCodeResponse := requestDeviceCode()
-	openURL(deviceCodeResponse.VerificationUri)
-	fmt.Println("Verification Url: " + deviceCodeResponse.VerificationUri)
-	fmt.Println("Your Authorization Code: " + deviceCodeResponse.UserCode)
-	oauthAccessTokenSuccessResponse := checkForTokens(deviceCodeResponse, 5)
-	writeTokensToFile(oauthAccessTokenSuccessResponse)
+	clearAuth()
+
+	authResponse, err := startGitHubAuth()
+	if err != nil {
+		fmt.Printf("Failed to start GitHub auth: %v\n", err)
+		os.Exit(1)
+	}
+
+	openURL(authResponse.VerificationUri)
+	fmt.Println("Verification URL: " + authResponse.VerificationUri)
+	fmt.Println("Your Authorization Code: " + authResponse.UserCode)
+
+	tokenResponse := checkForTokens(authResponse)
+	writeJwtToFile(tokenResponse.Jwt)
+
+	fmt.Println("Authentication successful!")
+}
+
+func IfRefreshIsRequired() bool {
+	jwt := retrieveJwt()
+	return !validateSession(jwt)
+}
+
+func GetJwt() string {
+	return retrieveJwt()
+}
+
+func GetAccessToken() string {
+	jwt := retrieveJwt()
+	tokenResponse, err := getAuthToken(jwt)
+	if err != nil {
+		fmt.Printf("Failed to get access token: %v\n", err)
+		os.Exit(1)
+	}
+
+	if tokenResponse.Error != "" {
+		fmt.Printf("Error getting access token: %s - %s\n", tokenResponse.Error, tokenResponse.ErrorDescription)
+		os.Exit(1)
+	}
+
+	return tokenResponse.AccessToken
 }
