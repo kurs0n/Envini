@@ -1,24 +1,289 @@
-# Envini
+# Envini - Secure Environment Management System
 
+A comprehensive system for managing environment variables and secrets across GitHub repositories with secure authentication and CLI tools.
 
-# jak to powinno wyglądać
+## 🏗️ Architecture Overview
 
-//www.plantuml.com/plantuml/png/TLJDJkjM4DxxAQRPD5TAxYKi8uhuGQ9faOWQA59B5sDxI0wspx7E3vQzH4LzXggFqLt5hibxTNpC8SIzOPVnzyryFzWdngAshiYZR-oA2W9JOa8vnf4LDYSOp7L3vUQvhgPmeLAiK0e2gIfQAZ2KQR8EIiOqu3QljSrK9KM6WoZ2n2eDWzljz5uEE-JvrUpJ0D30hI4TbIn09A94QM5mfh50E9tF_FDBj5HXlGjPaAw4kPUdZW_K3IQFmeFvzshnb7mT_1ELggcP8Fxzk_BmTh8Nll3E0dH12VyoBJf5Yp4QOgNOu1xWnHdRPtNI5J5n1aVnyQy7lnrzYOyvbzOpZ8-3DvZ2_7fn0rzCnuLXYf96e5dUB1s1LHd97-vkFhM1YYSclQSIBRLo9VoeLGQJAToHhXz4ndaWipQl1Wkr-IiH8C2L6ha1slmU0K1Om2f2QApYPym5kwERzk1mUxObXDC1xeU1EjunmnwSbbDmR7EMUc1A_-FtP8Goc7--eYGxJH8oPjZj25diIWaKF_mMkk9WfsOeE0M2KbdTKAmgNF_HnUcWWKjXltSnlj67fIg45Ei_hO8qHqXu2UNIvpS2p0aiISZQfECQh0E9ngvVIh5vzhByuVrXhD1qbhwpsb4_bE24PBhJwU4KhjII6uLOD98CEu0nD5WA4rwzVexXFxMBKXC_wKQzB4UGegHUee4S-f6AXreiLnRKmyUduFycds7Hr0zQTTy4NbWdgnrX08UVuTPMYlDl8HKhRxElI9l7zGj83HCFPEV-ch_xqSJMqiKPE_gbzTvm12OS9c-avoCm_7ZB7_S3cYjR2TAfLzS5wthbREazRVkgDiuNlMVDUys1s2xnNuGfNAUbOZdfvfyf71vCtkfB8zxIV_DFU8Shyly0
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│      CLI        │    │   BackendGate   │    │   AuthService   │
+│   (Go Client)   │◄──►│   (NestJS API)  │◄──►│   (gRPC Server) │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │                       │
+                                ▼                       ▼
+                       ┌─────────────────┐    ┌─────────────────┐
+                       │SecretOperation  │    │   PostgreSQL    │
+                       │Service (gRPC)   │    │   (Sessions)    │
+                       └─────────────────┘    └─────────────────┘
+```
 
+## 🚀 Components
 
+### 1. **AuthService** (Go gRPC Server)
+- **Purpose**: Handles GitHub OAuth device flow authentication
+- **Features**:
+  - GitHub device code authentication flow
+  - JWT-based session management
+  - PostgreSQL-backed session storage
+  - Token refresh and validation
+  - Secure logout functionality
 
-Final: 
+### 2. **BackendGate** (NestJS REST API)
+- **Purpose**: REST API gateway that communicates with gRPC services
+- **Features**:
+  - REST endpoints for authentication
+  - Repository listing via SecretsService
+  - JWT token validation and forwarding
+  - Clean separation between frontend and backend services
 
-//www.plantuml.com/plantuml/png/VLJDRjj64BxpAIOCK4bkb2154A11OCIAqyJzWGLBhWixFWov4sd5vQwwFo78eXS3UOYWZz5hRhNUgxEYQ3Csa1jtP-Rxlfdvbg-SH-j3gP87VaabWLjZJWgpn4kl2D83co-bfy87Yz30Z6mb7PKmDvil3akp-IUNCCoeWMfpXKxJ2Z1uO-i6yvKSfKc2EHyXFTrygNrXAYsB5D31gIERN1nfJ_O3hHoy_lK8di0PPPU0V5AIj4-IN9aW8DscQV8f_9K0N4mibWW7qwDjxblqL66T_9qaBBx01SkUrSwpoi4R_L5gEO3XX2EanQX5-3DGuAo9DGLPE9CeJDlALbfxdN2UfToZNiH1_2OBQzos_Re5OI4lJxz_-jEFJv_lxmO3nskoiV7tMYFV5POyviieaqyvdzpnsiq-vjlo0PoN4ZbHOrFLqC3W8FWbHmV0bnbQqSWuJq55XLvVV-gHFdl-h2FjxuA9XqU2j9U-Xkyumat3xnYK7sr5T34cwOCT7jw07GHH-n2JuwVqRIRFDkgTO8CWKDVv4ZGALB0Yvw6mjQ_pHkE313ZiCKD7aCRik-BMjg5yQQgm8cZGDVK7QohK13vAhKTfN-NXv3vUgo-zqSSv_SMVkirLM4WufqfVV_QsqRGppLlftuNinZNjaK-nV03ZyHXEIF7kA7udhG5XVF4mKu4UPKQ9o_5-vpLu0Ucx-NpwvEJDR0x3fbLF9VnyDeVMSwCqmhPE5QHeqNOiK4jCEfZ75myNbaW_4kYM92uVx_St55aM9zFNB-0CbHHXrTBi2D9leVJDriUf2wDn1QQrwVNdAFAkTs5jU6wKHS652dbJWp1GsF_-LUHyXSdNu1rxdD7T3ZhYztflxv1vIxbhORSCeH22OrhuOszlg-KNKmOj2zQ1WAxM-T8QBTbRTsbvCyQYNjpkPlUQcNCQCYKBdjUvGEv4IqgJDXhBri6krMrPv_9OE0kPOpDdNvUohAdPN5r_okC5GWCPDbZAtKj8-YjxEMR8ddyxz3RGEVO-OZiGAljWKIohA2n5eRUEZKgFuw_Y1nZwMXK6-5NLeCmYFYKPHkczMNKuRTTzCCPgJInCPmi96i5rFoz6UqLQX5Bz3m00
+### 3. **SecretOperationService** (Go gRPC Server)
+- **Purpose**: Handles GitHub repository operations
+- **Features**:
+  - List GitHub repositories
+  - Secure access token handling
+  - Repository metadata retrieval
 
+### 4. **CLI** (Go Client)
+- **Purpose**: Command-line interface for users
+- **Features**:
+  - GitHub authentication flow
+  - Repository listing
+  - File upload capabilities
+  - Interactive loading animations
+  - Help system
 
+## 📋 Prerequisites
 
-Brama API nestjs
+- **Go** 1.21+
+- **Node.js** 18+
+- **PostgreSQL** 14+
+- **Docker** (for PostgreSQL container)
+- **GitHub OAuth App** credentials
 
-Broker: pub/sub
+## 🛠️ Installation & Setup
 
-Serwis operacji na sekretach -> Secrets Service
+### 1. Clone the Repository
+```bash
+git clone <repository-url>
+cd Envini
+```
 
-Audit Service
+### 2. Environment Variables
 
-Identity Service
+Create `.env` files for each component:
+
+#### AuthService (.env)
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=password
+DB_NAME=authservice
+DB_SSL_MODE=disable
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
+JWT_SECRET=your_jwt_secret_key
+```
+
+#### BackendGate (.env)
+```env
+AUTH_SERVICE_URL=localhost:50051
+SECRETS_SERVICE_URL=localhost:50052
+PORT=3000
+```
+
+#### SecretOperationService (.env)
+```env
+GITHUB_API_URL=https://api.github.com
+```
+
+### 3. Database Setup
+
+Start PostgreSQL using Docker:
+```bash
+make postgres-start
+```
+
+Or manually:
+```bash
+docker run -d \
+  --name postgres-auth \
+  -e POSTGRES_PASSWORD=password \
+  -e POSTGRES_DB=authservice \
+  -p 5432:5432 \
+  postgres:14
+```
+
+### 4. Generate Protocol Buffers
+```bash
+make proto
+```
+
+## 🚀 Running the Services
+
+### 1. Start AuthService
+```bash
+cd AuthService
+go mod tidy
+go run main.go
+```
+
+### 2. Start SecretOperationService
+```bash
+cd SecretOperationService
+go mod tidy
+go run main.go
+```
+
+### 3. Start BackendGate
+```bash
+cd BackendGate
+npm install
+npm run start:dev
+```
+
+### 4. Build and Run CLI
+```bash
+cd CLI
+go mod tidy
+go build -o envini-cli
+./envini-cli
+```
+
+## 📖 Usage
+
+### CLI Commands
+
+#### Authentication
+```bash
+# Start GitHub authentication
+./envini-cli auth
+
+# This will:
+# 1. Display a device code and verification URL
+# 2. Show a loading spinner while polling for completion
+# 3. Store the JWT token for subsequent requests
+```
+
+#### Repository Operations
+```bash
+# List your GitHub repositories
+./envini-cli list
+
+# Upload a file (placeholder for future implementation)
+./envini-cli upload <file-path>
+```
+
+#### Help
+```bash
+# Show available commands
+./envini-cli help
+```
+
+### API Endpoints (BackendGate)
+
+#### Authentication
+- `POST /auth/start` - Start GitHub device flow
+- `POST /auth/poll` - Poll for authentication completion
+- `POST /auth/validate` - Validate JWT session
+- `POST /auth/logout` - Logout and clear session
+
+#### Repository Operations
+- `GET /repos/list` - List GitHub repositories (requires JWT Bearer token)
+
+## 🔧 Development
+
+### Protocol Buffer Generation
+```bash
+# Generate Go code from proto files
+make proto
+```
+
+### Database Management
+```bash
+# Start PostgreSQL container
+make postgres-start
+
+# Stop PostgreSQL container
+make postgres-stop
+
+# Remove PostgreSQL container
+make postgres-clean
+```
+
+### Testing
+```bash
+# Test BackendGate
+cd BackendGate
+npm test
+
+# Test Go services
+cd AuthService
+go test ./...
+
+cd ../SecretOperationService
+go test ./...
+```
+
+## 🔐 Security Features
+
+- **JWT-based Authentication**: Secure session management with JWTs
+- **GitHub OAuth Device Flow**: Secure authentication without client secrets
+- **PostgreSQL Session Storage**: Persistent session management
+- **gRPC Communication**: Type-safe inter-service communication
+- **Token Refresh**: Automatic token renewal
+- **Secure Logout**: Proper session cleanup
+
+## 📁 Project Structure
+
+```
+Envini/
+├── AuthService/                 # Go gRPC authentication service
+│   ├── internal/
+│   ├── proto/
+│   └── main.go
+├── BackendGate/                 # NestJS REST API gateway
+│   ├── src/
+│   │   ├── auth/
+│   │   ├── repos/
+│   │   └── grpc/
+│   └── package.json
+├── SecretOperationService/       # Go gRPC secrets service
+│   ├── internal/
+│   ├── proto/
+│   └── main.go
+├── CLI/                         # Go command-line client
+│   ├── auth/
+│   ├── list/
+│   ├── upload/
+│   └── main.go
+├── proto/                       # Protocol buffer definitions
+│   ├── auth.proto
+│   └── secrets.proto
+├── Database_AuthService/        # Database setup scripts
+├── Makefile                     # Build and deployment scripts
+└── README.md
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## 🆘 Support
+
+For issues and questions:
+- Check the existing issues
+- Create a new issue with detailed information
+- Contact the development team
+
+---
+
+**Note**: This system is designed for secure environment variable management across GitHub repositories with enterprise-grade authentication and session management.
