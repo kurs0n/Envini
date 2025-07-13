@@ -10,13 +10,14 @@ import (
 	"os"
 	"time"
 
-	"google.golang.org/grpc"
 	"bytes"
 	"io"
-	authservice "github.com/kurs0n/AuthService/proto"
 	"log"
-	"github.com/google/uuid"
+
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
+	authservice "github.com/kurs0n/AuthService/proto"
+	"google.golang.org/grpc"
 )
 
 type Server struct {
@@ -95,7 +96,7 @@ var jwtSecret = []byte("supersecretkey") // TODO: move to env
 func generateJWT(sessionID uuid.UUID) (string, error) {
 	claims := jwt.MapClaims{
 		"session_id": sessionID.String(),
-		"exp": time.Now().Add(24 * time.Hour).Unix(),
+		"exp":        time.Now().Add(24 * time.Hour).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(jwtSecret)
@@ -176,13 +177,13 @@ func (s *Server) PollForToken(ctx context.Context, req *authservice.PollForToken
 		}
 		sessionID := uuid.New()
 		sess := &Session{
-			SessionID:              sessionID,
-			GithubUserID:           githubUserID,
-			AccessToken:            tokenSuccess.AccessToken,
-			RefreshToken:           tokenSuccess.RefreshToken,
-			ExpiresAt:              time.Now().Add(time.Duration(tokenSuccess.ExpiresIn) * time.Second),
-			RefreshTokenExpiresAt:  time.Now().Add(time.Duration(tokenSuccess.RefreshTokenExpiresIn) * time.Second),
-			CreatedAt:              time.Now(),
+			SessionID:             sessionID,
+			GithubUserID:          githubUserID,
+			AccessToken:           tokenSuccess.AccessToken,
+			RefreshToken:          tokenSuccess.RefreshToken,
+			ExpiresAt:             time.Now().Add(time.Duration(tokenSuccess.ExpiresIn) * time.Second),
+			RefreshTokenExpiresAt: time.Now().Add(time.Duration(tokenSuccess.RefreshTokenExpiresIn) * time.Second),
+			CreatedAt:             time.Now(),
 		}
 		err = s.Sessions.UpsertByGithubUserID(ctx, sess)
 		if err != nil {
@@ -275,10 +276,10 @@ func (s *Server) RefreshToken(ctx context.Context, req *authservice.RefreshToken
 		return nil, err
 	}
 	var tokenSuccess struct {
-		AccessToken  string `json:"access_token"`
-		ExpiresIn    int64  `json:"expires_in"`
-		RefreshToken string `json:"refresh_token"`
-		RefreshTokenExpiresIn int64 `json:"refresh_token_expires_in"`
+		AccessToken           string `json:"access_token"`
+		ExpiresIn             int64  `json:"expires_in"`
+		RefreshToken          string `json:"refresh_token"`
+		RefreshTokenExpiresIn int64  `json:"refresh_token_expires_in"`
 	}
 	var tokenError struct {
 		Error            string `json:"error"`
@@ -336,6 +337,80 @@ func (s *Server) ValidateSession(ctx context.Context, req *authservice.ValidateS
 		return &authservice.ValidateSessionResponse{Valid: false, Error: "Session not found or expired"}, nil
 	}
 	return &authservice.ValidateSessionResponse{Valid: true}, nil
+}
+
+func (s *Server) GetAuthToken(ctx context.Context, req *authservice.GetAuthTokenRequest) (*authservice.GetAuthTokenResponse, error) {
+	token, err := jwt.Parse(req.Jwt, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method")
+		}
+		return jwtSecret, nil
+	})
+	if err != nil || !token.Valid {
+		return &authservice.GetAuthTokenResponse{
+			Error:            "invalid_jwt",
+			ErrorDescription: "JWT is invalid or expired",
+		}, nil
+	}
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return &authservice.GetAuthTokenResponse{
+			Error:            "invalid_jwt_claims",
+			ErrorDescription: "JWT claims are not in the expected format",
+		}, nil
+	}
+	sessionIDStr, ok := claims["session_id"].(string)
+	if !ok {
+		return &authservice.GetAuthTokenResponse{
+			Error:            "session_id_missing_in_jwt",
+			ErrorDescription: "Session ID is missing in JWT claims",
+		}, nil
+	}
+	sid, err := uuid.Parse(sessionIDStr)
+	if err != nil {
+		return &authservice.GetAuthTokenResponse{
+			Error:            "invalid_session_id",
+			ErrorDescription: "Session ID in JWT is not a valid UUID",
+		}, nil
+	}
+	sess, err := s.Sessions.GetBySessionID(ctx, sid)
+	if err != nil || sess == nil {
+		return &authservice.GetAuthTokenResponse{
+			Error:            "session_not_found",
+			ErrorDescription: "Session not found or expired",
+		}, nil
+	}
+
+	if time.Now().After(sess.ExpiresAt) {
+		refreshReq := &authservice.RefreshTokenRequest{Jwt: req.Jwt}
+		refreshResp, err := s.RefreshToken(ctx, refreshReq)
+		if err != nil {
+			return &authservice.GetAuthTokenResponse{
+				Error:            "internal_error",
+				ErrorDescription: err.Error(),
+			}, nil
+		}
+		if refreshResp.Error != "" {
+			return &authservice.GetAuthTokenResponse{
+				Error:            refreshResp.Error,
+				ErrorDescription: refreshResp.ErrorDescription,
+			}, nil
+		}
+
+		sess, err = s.Sessions.GetBySessionID(ctx, sid)
+		if err != nil || sess == nil {
+			return &authservice.GetAuthTokenResponse{
+				Error:            "session_not_found_after_refresh",
+				ErrorDescription: "Session not found after token refresh",
+			}, nil
+		}
+	}
+
+	return &authservice.GetAuthTokenResponse{
+		AccessToken: sess.AccessToken,
+		TokenType:   "Bearer",
+		Scope:       "user:email",
+	}, nil
 }
 
 func (s *Server) Logout(ctx context.Context, req *authservice.LogoutRequest) (*authservice.LogoutResponse, error) {

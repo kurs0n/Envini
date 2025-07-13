@@ -11,13 +11,13 @@ import (
 )
 
 type Session struct {
-	SessionID              uuid.UUID `gorm:"type:uuid;primaryKey"`
-	GithubUserID           int64     `gorm:"uniqueIndex"`
-	AccessToken            string
-	RefreshToken           string
-	ExpiresAt              time.Time
-	RefreshTokenExpiresAt  time.Time
-	CreatedAt              time.Time
+	SessionID             uuid.UUID `gorm:"type:uuid;primaryKey"`
+	GithubUserID          int64     `gorm:"uniqueIndex"`
+	AccessToken           string
+	RefreshToken          string
+	ExpiresAt             time.Time
+	RefreshTokenExpiresAt time.Time
+	CreatedAt             time.Time
 }
 
 type SessionStore struct {
@@ -52,4 +52,4 @@ func (s *SessionStore) GetBySessionID(ctx context.Context, sessionID uuid.UUID) 
 
 func (s *SessionStore) Delete(ctx context.Context, sessionID uuid.UUID) error {
 	return s.DB.WithContext(ctx).Delete(&Session{}, "session_id = ?", sessionID).Error
-} 
+}

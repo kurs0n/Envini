@@ -11,6 +11,9 @@ service AuthService {
   // Poll for token after user authorizes
   rpc PollForToken (PollForTokenRequest) returns (PollForTokenResponse);
 
+  // Get auth token for a session
+  rpc GetAuthToken (GetAuthTokenRequest) returns (GetAuthTokenResponse);
+
   // Refresh access token
   rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenResponse);
 
@@ -46,6 +49,18 @@ message PollForTokenResponse {
   string error_description = 4;
 }
 
+message GetAuthTokenRequest {
+  string jwt = 1;
+}
+
+message GetAuthTokenResponse {
+  string access_token = 1;
+  string token_type = 2;
+  string scope = 3;
+  string error = 4;
+  string error_description = 5;
+}
+
 message RefreshTokenRequest {
   string jwt = 1;
 }
@@ -77,3 +92,4 @@ message LogoutResponse {
   bool success = 1;
   string error = 2;
 }
+
