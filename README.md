@@ -70,15 +70,15 @@ cd Envini
 
 ### 2. Environment Variables
 
-Create `.env` files for each component:
+Create `.env` files for each component (these files are gitignored, so you need to create them manually):
 
 #### AuthService (.env)
 ```env
 DB_HOST=localhost
 DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=password
-DB_NAME=authservice
+DB_USER=envini
+DB_PASSWORD=envini
+DB_NAME=envini
 DB_SSL_MODE=disable
 GITHUB_CLIENT_ID=your_github_client_id
 GITHUB_CLIENT_SECRET=your_github_client_secret
@@ -108,8 +108,9 @@ Or manually:
 ```bash
 docker run -d \
   --name postgres-auth \
-  -e POSTGRES_PASSWORD=password \
-  -e POSTGRES_DB=authservice \
+  -e POSTGRES_PASSWORD=envini \
+  -e POSTGRES_USER=envini \
+  -e POSTGRES_DB=envini \
   -p 5432:5432 \
   postgres:14
 ```
@@ -264,6 +265,48 @@ Envini/
 ├── Makefile                     # Build and deployment scripts
 └── README.md
 ```
+
+## 🔧 Troubleshooting
+
+### Connection Issues
+If you see connection errors like `ECONNREFUSED 127.0.0.1:5000`, ensure:
+
+1. **AuthService is running** on port 50051:
+   ```bash
+   cd AuthService
+   go run main.go
+   ```
+
+2. **BackendGate environment** is correctly configured:
+   ```bash
+   # Create BackendGate/.env file
+   echo "AUTH_SERVICE_URL=localhost:50051" > BackendGate/.env
+   echo "SECRETS_SERVICE_URL=localhost:50052" >> BackendGate/.env
+   echo "PORT=3000" >> BackendGate/.env
+   ```
+
+3. **Database is running** with correct credentials:
+   ```bash
+   # Check if PostgreSQL is running
+   docker ps | grep postgres
+   
+   # If not running, start it:
+   docker run -d \
+     --name postgres-auth \
+     -e POSTGRES_PASSWORD=envini \
+     -e POSTGRES_USER=envini \
+     -e POSTGRES_DB=envini \
+     -p 5432:5432 \
+     postgres:14
+   ```
+
+### Service Startup Order
+Start services in this order:
+1. PostgreSQL database
+2. AuthService (port 50051)
+3. SecretOperationService (port 50052)
+4. BackendGate (port 3000)
+5. CLI
 
 ## 🤝 Contributing
 

@@ -26,7 +26,15 @@ type Server struct {
 }
 
 func NewServer() *Server {
-	store, err := NewSessionStore(os.Getenv("POSTGRES_DSN"))
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		getenv("DB_HOST", "localhost"),
+		getenv("DB_PORT", "5432"),
+		getenv("DB_USER", "envini"),
+		getenv("DB_PASSWORD", "envini"),
+		getenv("DB_NAME", "envini"),
+		getenv("DB_SSL_MODE", "disable"),
+	)
+	store, err := NewSessionStore(dsn)
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
@@ -91,7 +99,7 @@ func (s *Server) StartDeviceFlow(ctx context.Context, req *authservice.StartDevi
 	}, nil
 }
 
-var jwtSecret = []byte("supersecretkey") // TODO: move to env
+var jwtSecret = []byte(getenv("JWT_SECRET", "supersecretkey"))
 
 func generateJWT(sessionID uuid.UUID) (string, error) {
 	claims := jwt.MapClaims{

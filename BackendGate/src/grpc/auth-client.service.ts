@@ -49,7 +49,7 @@ export class AuthClientService implements OnModuleInit {
   @Client({
     transport: Transport.GRPC,
     options: {
-      url: 'localhost:50051',
+      url: "localhost:50051",
       package: 'authservice',
       protoPath: '../proto/auth.proto',
     },

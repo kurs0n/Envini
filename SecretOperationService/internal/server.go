@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
 
 	secretsservice "github.com/kurs0n/SecretOperationService/proto"
 	"google.golang.org/grpc"
@@ -23,7 +24,7 @@ func NewServer() *Server {
 func (s *Server) ListRepos(ctx context.Context, req *secretsservice.ListReposRequest) (*secretsservice.ListReposResponse, error) {
 	client := &http.Client{}
 
-	r, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://api.github.com/user/repos?per_page=100", nil)
+	r, err := http.NewRequestWithContext(ctx, http.MethodGet, os.Getenv("GITHUB_API_URL")+"/user/repos?per_page=100", nil)
 	if err != nil {
 		return &secretsservice.ListReposResponse{
 			Error: fmt.Sprintf("Failed to create request: %v", err),
