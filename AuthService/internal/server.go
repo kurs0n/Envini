@@ -48,17 +48,6 @@ func getenv(key, fallback string) string {
 	return fallback
 }
 
-func getenvInt(key string, fallback int) int {
-	if v := os.Getenv(key); v != "" {
-		var i int
-		_, err := fmt.Sscanf(v, "%d", &i)
-		if err == nil {
-			return i
-		}
-	}
-	return fallback
-}
-
 func (s *Server) StartDeviceFlow(ctx context.Context, req *authservice.StartDeviceFlowRequest) (*authservice.StartDeviceFlowResponse, error) {
 	uri := "https://github.com/login/device/code"
 	data := url.Values{}
@@ -451,13 +440,13 @@ func (s *Server) Logout(ctx context.Context, req *authservice.LogoutRequest) (*a
 }
 
 func RunGRPCServer() {
-	lis, err := net.Listen("tcp", ":50051")
+	lis, err := net.Listen("tcp", ":50052")
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 	grpcServer := grpc.NewServer()
 	authservice.RegisterAuthServiceServer(grpcServer, NewServer())
-	log.Println("gRPC AuthService server listening on :50051")
+	log.Println("gRPC AuthService server listening on :50052")
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}

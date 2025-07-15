@@ -88,13 +88,13 @@ func (s *Server) ListRepos(ctx context.Context, req *secretsservice.ListReposReq
 }
 
 func RunGRPCServer() {
-	lis, err := net.Listen("tcp", ":50052")
+	lis, err := net.Listen("tcp", ":50053")
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 	grpcServer := grpc.NewServer()
 	secretsservice.RegisterSecretsServiceServer(grpcServer, NewServer())
-	log.Println("gRPC SecretsService server listening on :50052")
+	log.Println("gRPC SecretsService server listening on :50053")
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}

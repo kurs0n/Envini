@@ -87,8 +87,8 @@ JWT_SECRET=your_jwt_secret_key
 
 #### BackendGate (.env)
 ```env
-AUTH_SERVICE_URL=localhost:50051
-SECRETS_SERVICE_URL=localhost:50052
+AUTH_SERVICE_URL=locost:50052
+SECRETS_SERVICE_URL=localhost:50053
 PORT=3000
 ```
 
@@ -107,7 +107,7 @@ make postgres-start
 Or manually:
 ```bash
 docker run -d \
-  --name postgres-auth \
+  --name postgres-auth \alh
   -e POSTGRES_PASSWORD=envini \
   -e POSTGRES_USER=envini \
   -e POSTGRES_DB=envini \
