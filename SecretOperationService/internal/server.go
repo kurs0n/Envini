@@ -99,3 +99,12 @@ func RunGRPCServer() {
 		log.Fatalf("failed to serve: %v", err)
 	}
 }
+
+func HasRepoAccess(repos []*secretsservice.Repo, ownerLogin, name string) bool {
+	for _, repo := range repos {
+		if repo.OwnerLogin == ownerLogin && repo.Name == name {
+			return true
+		}
+	}
+	return false
+}

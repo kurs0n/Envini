@@ -1,4 +1,4 @@
-DB_CONTAINER=envini-postgres
+DB_CONTAINER=envini-auth-postgres
 DB_IMAGE=postgres:16-alpine
 DB_PORT=5432
 DB_USER=envini
