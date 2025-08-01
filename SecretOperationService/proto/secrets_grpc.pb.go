@@ -19,7 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SecretsService_ListRepos_FullMethodName = "/secretsservice.SecretsService/ListRepos"
+	SecretsService_ListRepos_FullMethodName           = "/secretsservice.SecretsService/ListRepos"
+	SecretsService_UploadSecret_FullMethodName        = "/secretsservice.SecretsService/UploadSecret"
+	SecretsService_ListSecretVersions_FullMethodName  = "/secretsservice.SecretsService/ListSecretVersions"
+	SecretsService_DownloadSecret_FullMethodName      = "/secretsservice.SecretsService/DownloadSecret"
+	SecretsService_DownloadSecretByTag_FullMethodName = "/secretsservice.SecretsService/DownloadSecretByTag"
+	SecretsService_DeleteSecret_FullMethodName        = "/secretsservice.SecretsService/DeleteSecret"
 )
 
 // SecretsServiceClient is the client API for SecretsService service.
@@ -27,6 +32,11 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SecretsServiceClient interface {
 	ListRepos(ctx context.Context, in *ListReposRequest, opts ...grpc.CallOption) (*ListReposResponse, error)
+	UploadSecret(ctx context.Context, in *UploadSecretRequest, opts ...grpc.CallOption) (*UploadSecretResponse, error)
+	ListSecretVersions(ctx context.Context, in *ListSecretVersionsRequest, opts ...grpc.CallOption) (*ListSecretVersionsResponse, error)
+	DownloadSecret(ctx context.Context, in *DownloadSecretRequest, opts ...grpc.CallOption) (*DownloadSecretResponse, error)
+	DownloadSecretByTag(ctx context.Context, in *DownloadSecretByTagRequest, opts ...grpc.CallOption) (*DownloadSecretResponse, error)
+	DeleteSecret(ctx context.Context, in *DeleteSecretRequest, opts ...grpc.CallOption) (*DeleteSecretResponse, error)
 }
 
 type secretsServiceClient struct {
@@ -47,11 +57,66 @@ func (c *secretsServiceClient) ListRepos(ctx context.Context, in *ListReposReque
 	return out, nil
 }
 
+func (c *secretsServiceClient) UploadSecret(ctx context.Context, in *UploadSecretRequest, opts ...grpc.CallOption) (*UploadSecretResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UploadSecretResponse)
+	err := c.cc.Invoke(ctx, SecretsService_UploadSecret_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *secretsServiceClient) ListSecretVersions(ctx context.Context, in *ListSecretVersionsRequest, opts ...grpc.CallOption) (*ListSecretVersionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListSecretVersionsResponse)
+	err := c.cc.Invoke(ctx, SecretsService_ListSecretVersions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *secretsServiceClient) DownloadSecret(ctx context.Context, in *DownloadSecretRequest, opts ...grpc.CallOption) (*DownloadSecretResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DownloadSecretResponse)
+	err := c.cc.Invoke(ctx, SecretsService_DownloadSecret_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *secretsServiceClient) DownloadSecretByTag(ctx context.Context, in *DownloadSecretByTagRequest, opts ...grpc.CallOption) (*DownloadSecretResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DownloadSecretResponse)
+	err := c.cc.Invoke(ctx, SecretsService_DownloadSecretByTag_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *secretsServiceClient) DeleteSecret(ctx context.Context, in *DeleteSecretRequest, opts ...grpc.CallOption) (*DeleteSecretResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteSecretResponse)
+	err := c.cc.Invoke(ctx, SecretsService_DeleteSecret_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SecretsServiceServer is the server API for SecretsService service.
 // All implementations must embed UnimplementedSecretsServiceServer
 // for forward compatibility.
 type SecretsServiceServer interface {
 	ListRepos(context.Context, *ListReposRequest) (*ListReposResponse, error)
+	UploadSecret(context.Context, *UploadSecretRequest) (*UploadSecretResponse, error)
+	ListSecretVersions(context.Context, *ListSecretVersionsRequest) (*ListSecretVersionsResponse, error)
+	DownloadSecret(context.Context, *DownloadSecretRequest) (*DownloadSecretResponse, error)
+	DownloadSecretByTag(context.Context, *DownloadSecretByTagRequest) (*DownloadSecretResponse, error)
+	DeleteSecret(context.Context, *DeleteSecretRequest) (*DeleteSecretResponse, error)
 	mustEmbedUnimplementedSecretsServiceServer()
 }
 
@@ -64,6 +129,21 @@ type UnimplementedSecretsServiceServer struct{}
 
 func (UnimplementedSecretsServiceServer) ListRepos(context.Context, *ListReposRequest) (*ListReposResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListRepos not implemented")
+}
+func (UnimplementedSecretsServiceServer) UploadSecret(context.Context, *UploadSecretRequest) (*UploadSecretResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UploadSecret not implemented")
+}
+func (UnimplementedSecretsServiceServer) ListSecretVersions(context.Context, *ListSecretVersionsRequest) (*ListSecretVersionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListSecretVersions not implemented")
+}
+func (UnimplementedSecretsServiceServer) DownloadSecret(context.Context, *DownloadSecretRequest) (*DownloadSecretResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DownloadSecret not implemented")
+}
+func (UnimplementedSecretsServiceServer) DownloadSecretByTag(context.Context, *DownloadSecretByTagRequest) (*DownloadSecretResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DownloadSecretByTag not implemented")
+}
+func (UnimplementedSecretsServiceServer) DeleteSecret(context.Context, *DeleteSecretRequest) (*DeleteSecretResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteSecret not implemented")
 }
 func (UnimplementedSecretsServiceServer) mustEmbedUnimplementedSecretsServiceServer() {}
 func (UnimplementedSecretsServiceServer) testEmbeddedByValue()                        {}
@@ -104,6 +184,96 @@ func _SecretsService_ListRepos_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SecretsService_UploadSecret_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UploadSecretRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SecretsServiceServer).UploadSecret(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SecretsService_UploadSecret_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SecretsServiceServer).UploadSecret(ctx, req.(*UploadSecretRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SecretsService_ListSecretVersions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSecretVersionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SecretsServiceServer).ListSecretVersions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SecretsService_ListSecretVersions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SecretsServiceServer).ListSecretVersions(ctx, req.(*ListSecretVersionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SecretsService_DownloadSecret_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DownloadSecretRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SecretsServiceServer).DownloadSecret(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SecretsService_DownloadSecret_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SecretsServiceServer).DownloadSecret(ctx, req.(*DownloadSecretRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SecretsService_DownloadSecretByTag_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DownloadSecretByTagRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SecretsServiceServer).DownloadSecretByTag(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SecretsService_DownloadSecretByTag_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SecretsServiceServer).DownloadSecretByTag(ctx, req.(*DownloadSecretByTagRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SecretsService_DeleteSecret_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteSecretRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SecretsServiceServer).DeleteSecret(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SecretsService_DeleteSecret_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SecretsServiceServer).DeleteSecret(ctx, req.(*DeleteSecretRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SecretsService_ServiceDesc is the grpc.ServiceDesc for SecretsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -114,6 +284,26 @@ var SecretsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListRepos",
 			Handler:    _SecretsService_ListRepos_Handler,
+		},
+		{
+			MethodName: "UploadSecret",
+			Handler:    _SecretsService_UploadSecret_Handler,
+		},
+		{
+			MethodName: "ListSecretVersions",
+			Handler:    _SecretsService_ListSecretVersions_Handler,
+		},
+		{
+			MethodName: "DownloadSecret",
+			Handler:    _SecretsService_DownloadSecret_Handler,
+		},
+		{
+			MethodName: "DownloadSecretByTag",
+			Handler:    _SecretsService_DownloadSecretByTag_Handler,
+		},
+		{
+			MethodName: "DeleteSecret",
+			Handler:    _SecretsService_DeleteSecret_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -5,6 +5,13 @@ FROM postgres:16-alpine
 ENV POSTGRES_USER=envini
 ENV POSTGRES_PASSWORD=envini
 ENV POSTGRES_DB=envini
+ENV POSTGRES_PORT=5433
 
-# Expose the default PostgreSQL port
+# Expose the PostgreSQL port
 EXPOSE 5433
+
+# Copy custom PostgreSQL configuration
+COPY postgresql.conf /etc/postgresql/postgresql.conf
+
+# Set the custom configuration file
+CMD ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]

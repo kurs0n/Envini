@@ -217,6 +217,718 @@ func (x *Repo) GetOwnerAvatarUrl() string {
 	return ""
 }
 
+type UploadSecretRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	AccessToken    string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	OwnerLogin     string                 `protobuf:"bytes,2,opt,name=owner_login,json=ownerLogin,proto3" json:"owner_login,omitempty"`
+	RepoName       string                 `protobuf:"bytes,3,opt,name=repo_name,json=repoName,proto3" json:"repo_name,omitempty"`
+	Tag            string                 `protobuf:"bytes,4,opt,name=tag,proto3" json:"tag,omitempty"`                                               // Optional tag for version (e.g., "v1.0.0", "production")
+	EnvFileContent []byte                 `protobuf:"bytes,5,opt,name=env_file_content,json=envFileContent,proto3" json:"env_file_content,omitempty"` // Raw .env file content (base64 encoded)
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *UploadSecretRequest) Reset() {
+	*x = UploadSecretRequest{}
+	mi := &file_secrets_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UploadSecretRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UploadSecretRequest) ProtoMessage() {}
+
+func (x *UploadSecretRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_secrets_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UploadSecretRequest.ProtoReflect.Descriptor instead.
+func (*UploadSecretRequest) Descriptor() ([]byte, []int) {
+	return file_secrets_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *UploadSecretRequest) GetAccessToken() string {
+	if x != nil {
+		return x.AccessToken
+	}
+	return ""
+}
+
+func (x *UploadSecretRequest) GetOwnerLogin() string {
+	if x != nil {
+		return x.OwnerLogin
+	}
+	return ""
+}
+
+func (x *UploadSecretRequest) GetRepoName() string {
+	if x != nil {
+		return x.RepoName
+	}
+	return ""
+}
+
+func (x *UploadSecretRequest) GetTag() string {
+	if x != nil {
+		return x.Tag
+	}
+	return ""
+}
+
+func (x *UploadSecretRequest) GetEnvFileContent() []byte {
+	if x != nil {
+		return x.EnvFileContent
+	}
+	return nil
+}
+
+type UploadSecretResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Version       int32                  `protobuf:"varint,2,opt,name=version,proto3" json:"version,omitempty"`
+	Checksum      string                 `protobuf:"bytes,3,opt,name=checksum,proto3" json:"checksum,omitempty"`
+	Error         string                 `protobuf:"bytes,4,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UploadSecretResponse) Reset() {
+	*x = UploadSecretResponse{}
+	mi := &file_secrets_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UploadSecretResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UploadSecretResponse) ProtoMessage() {}
+
+func (x *UploadSecretResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_secrets_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UploadSecretResponse.ProtoReflect.Descriptor instead.
+func (*UploadSecretResponse) Descriptor() ([]byte, []int) {
+	return file_secrets_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *UploadSecretResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *UploadSecretResponse) GetVersion() int32 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *UploadSecretResponse) GetChecksum() string {
+	if x != nil {
+		return x.Checksum
+	}
+	return ""
+}
+
+func (x *UploadSecretResponse) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+type ListSecretVersionsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	OwnerLogin    string                 `protobuf:"bytes,2,opt,name=owner_login,json=ownerLogin,proto3" json:"owner_login,omitempty"`
+	RepoName      string                 `protobuf:"bytes,3,opt,name=repo_name,json=repoName,proto3" json:"repo_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSecretVersionsRequest) Reset() {
+	*x = ListSecretVersionsRequest{}
+	mi := &file_secrets_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSecretVersionsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSecretVersionsRequest) ProtoMessage() {}
+
+func (x *ListSecretVersionsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_secrets_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSecretVersionsRequest.ProtoReflect.Descriptor instead.
+func (*ListSecretVersionsRequest) Descriptor() ([]byte, []int) {
+	return file_secrets_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *ListSecretVersionsRequest) GetAccessToken() string {
+	if x != nil {
+		return x.AccessToken
+	}
+	return ""
+}
+
+func (x *ListSecretVersionsRequest) GetOwnerLogin() string {
+	if x != nil {
+		return x.OwnerLogin
+	}
+	return ""
+}
+
+func (x *ListSecretVersionsRequest) GetRepoName() string {
+	if x != nil {
+		return x.RepoName
+	}
+	return ""
+}
+
+type ListSecretVersionsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Versions      []*SecretVersion       `protobuf:"bytes,1,rep,name=versions,proto3" json:"versions,omitempty"`
+	Error         string                 `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSecretVersionsResponse) Reset() {
+	*x = ListSecretVersionsResponse{}
+	mi := &file_secrets_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSecretVersionsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSecretVersionsResponse) ProtoMessage() {}
+
+func (x *ListSecretVersionsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_secrets_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSecretVersionsResponse.ProtoReflect.Descriptor instead.
+func (*ListSecretVersionsResponse) Descriptor() ([]byte, []int) {
+	return file_secrets_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ListSecretVersionsResponse) GetVersions() []*SecretVersion {
+	if x != nil {
+		return x.Versions
+	}
+	return nil
+}
+
+func (x *ListSecretVersionsResponse) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+type SecretVersion struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Version       int32                  `protobuf:"varint,1,opt,name=version,proto3" json:"version,omitempty"`
+	Tag           string                 `protobuf:"bytes,2,opt,name=tag,proto3" json:"tag,omitempty"`
+	Checksum      string                 `protobuf:"bytes,3,opt,name=checksum,proto3" json:"checksum,omitempty"`
+	UploadedBy    string                 `protobuf:"bytes,4,opt,name=uploaded_by,json=uploadedBy,proto3" json:"uploaded_by,omitempty"`
+	CreatedAt     string                 `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	IsEncrypted   bool                   `protobuf:"varint,6,opt,name=is_encrypted,json=isEncrypted,proto3" json:"is_encrypted,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SecretVersion) Reset() {
+	*x = SecretVersion{}
+	mi := &file_secrets_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SecretVersion) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SecretVersion) ProtoMessage() {}
+
+func (x *SecretVersion) ProtoReflect() protoreflect.Message {
+	mi := &file_secrets_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SecretVersion.ProtoReflect.Descriptor instead.
+func (*SecretVersion) Descriptor() ([]byte, []int) {
+	return file_secrets_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *SecretVersion) GetVersion() int32 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *SecretVersion) GetTag() string {
+	if x != nil {
+		return x.Tag
+	}
+	return ""
+}
+
+func (x *SecretVersion) GetChecksum() string {
+	if x != nil {
+		return x.Checksum
+	}
+	return ""
+}
+
+func (x *SecretVersion) GetUploadedBy() string {
+	if x != nil {
+		return x.UploadedBy
+	}
+	return ""
+}
+
+func (x *SecretVersion) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *SecretVersion) GetIsEncrypted() bool {
+	if x != nil {
+		return x.IsEncrypted
+	}
+	return false
+}
+
+type DownloadSecretRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	OwnerLogin    string                 `protobuf:"bytes,2,opt,name=owner_login,json=ownerLogin,proto3" json:"owner_login,omitempty"`
+	RepoName      string                 `protobuf:"bytes,3,opt,name=repo_name,json=repoName,proto3" json:"repo_name,omitempty"`
+	Version       int32                  `protobuf:"varint,4,opt,name=version,proto3" json:"version,omitempty"` // 0 means latest version
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DownloadSecretRequest) Reset() {
+	*x = DownloadSecretRequest{}
+	mi := &file_secrets_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DownloadSecretRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DownloadSecretRequest) ProtoMessage() {}
+
+func (x *DownloadSecretRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_secrets_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DownloadSecretRequest.ProtoReflect.Descriptor instead.
+func (*DownloadSecretRequest) Descriptor() ([]byte, []int) {
+	return file_secrets_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *DownloadSecretRequest) GetAccessToken() string {
+	if x != nil {
+		return x.AccessToken
+	}
+	return ""
+}
+
+func (x *DownloadSecretRequest) GetOwnerLogin() string {
+	if x != nil {
+		return x.OwnerLogin
+	}
+	return ""
+}
+
+func (x *DownloadSecretRequest) GetRepoName() string {
+	if x != nil {
+		return x.RepoName
+	}
+	return ""
+}
+
+func (x *DownloadSecretRequest) GetVersion() int32 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+type DownloadSecretByTagRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	OwnerLogin    string                 `protobuf:"bytes,2,opt,name=owner_login,json=ownerLogin,proto3" json:"owner_login,omitempty"`
+	RepoName      string                 `protobuf:"bytes,3,opt,name=repo_name,json=repoName,proto3" json:"repo_name,omitempty"`
+	Tag           string                 `protobuf:"bytes,4,opt,name=tag,proto3" json:"tag,omitempty"` // Tag to search for
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DownloadSecretByTagRequest) Reset() {
+	*x = DownloadSecretByTagRequest{}
+	mi := &file_secrets_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DownloadSecretByTagRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DownloadSecretByTagRequest) ProtoMessage() {}
+
+func (x *DownloadSecretByTagRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_secrets_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DownloadSecretByTagRequest.ProtoReflect.Descriptor instead.
+func (*DownloadSecretByTagRequest) Descriptor() ([]byte, []int) {
+	return file_secrets_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *DownloadSecretByTagRequest) GetAccessToken() string {
+	if x != nil {
+		return x.AccessToken
+	}
+	return ""
+}
+
+func (x *DownloadSecretByTagRequest) GetOwnerLogin() string {
+	if x != nil {
+		return x.OwnerLogin
+	}
+	return ""
+}
+
+func (x *DownloadSecretByTagRequest) GetRepoName() string {
+	if x != nil {
+		return x.RepoName
+	}
+	return ""
+}
+
+func (x *DownloadSecretByTagRequest) GetTag() string {
+	if x != nil {
+		return x.Tag
+	}
+	return ""
+}
+
+type DownloadSecretResponse struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Success        bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Version        int32                  `protobuf:"varint,2,opt,name=version,proto3" json:"version,omitempty"`
+	Tag            string                 `protobuf:"bytes,3,opt,name=tag,proto3" json:"tag,omitempty"`
+	EnvFileContent []byte                 `protobuf:"bytes,4,opt,name=env_file_content,json=envFileContent,proto3" json:"env_file_content,omitempty"`
+	Checksum       string                 `protobuf:"bytes,5,opt,name=checksum,proto3" json:"checksum,omitempty"`
+	UploadedBy     string                 `protobuf:"bytes,6,opt,name=uploaded_by,json=uploadedBy,proto3" json:"uploaded_by,omitempty"`
+	CreatedAt      string                 `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Error          string                 `protobuf:"bytes,8,opt,name=error,proto3" json:"error,omitempty"`
+	IsEncrypted    bool                   `protobuf:"varint,9,opt,name=is_encrypted,json=isEncrypted,proto3" json:"is_encrypted,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *DownloadSecretResponse) Reset() {
+	*x = DownloadSecretResponse{}
+	mi := &file_secrets_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DownloadSecretResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DownloadSecretResponse) ProtoMessage() {}
+
+func (x *DownloadSecretResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_secrets_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DownloadSecretResponse.ProtoReflect.Descriptor instead.
+func (*DownloadSecretResponse) Descriptor() ([]byte, []int) {
+	return file_secrets_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *DownloadSecretResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *DownloadSecretResponse) GetVersion() int32 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *DownloadSecretResponse) GetTag() string {
+	if x != nil {
+		return x.Tag
+	}
+	return ""
+}
+
+func (x *DownloadSecretResponse) GetEnvFileContent() []byte {
+	if x != nil {
+		return x.EnvFileContent
+	}
+	return nil
+}
+
+func (x *DownloadSecretResponse) GetChecksum() string {
+	if x != nil {
+		return x.Checksum
+	}
+	return ""
+}
+
+func (x *DownloadSecretResponse) GetUploadedBy() string {
+	if x != nil {
+		return x.UploadedBy
+	}
+	return ""
+}
+
+func (x *DownloadSecretResponse) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *DownloadSecretResponse) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+func (x *DownloadSecretResponse) GetIsEncrypted() bool {
+	if x != nil {
+		return x.IsEncrypted
+	}
+	return false
+}
+
+type DeleteSecretRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	OwnerLogin    string                 `protobuf:"bytes,2,opt,name=owner_login,json=ownerLogin,proto3" json:"owner_login,omitempty"`
+	RepoName      string                 `protobuf:"bytes,3,opt,name=repo_name,json=repoName,proto3" json:"repo_name,omitempty"`
+	Version       int32                  `protobuf:"varint,4,opt,name=version,proto3" json:"version,omitempty"` // 0 means delete all versions
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteSecretRequest) Reset() {
+	*x = DeleteSecretRequest{}
+	mi := &file_secrets_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteSecretRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteSecretRequest) ProtoMessage() {}
+
+func (x *DeleteSecretRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_secrets_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteSecretRequest.ProtoReflect.Descriptor instead.
+func (*DeleteSecretRequest) Descriptor() ([]byte, []int) {
+	return file_secrets_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *DeleteSecretRequest) GetAccessToken() string {
+	if x != nil {
+		return x.AccessToken
+	}
+	return ""
+}
+
+func (x *DeleteSecretRequest) GetOwnerLogin() string {
+	if x != nil {
+		return x.OwnerLogin
+	}
+	return ""
+}
+
+func (x *DeleteSecretRequest) GetRepoName() string {
+	if x != nil {
+		return x.RepoName
+	}
+	return ""
+}
+
+func (x *DeleteSecretRequest) GetVersion() int32 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+type DeleteSecretResponse struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Success         bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	DeletedVersions int32                  `protobuf:"varint,2,opt,name=deleted_versions,json=deletedVersions,proto3" json:"deleted_versions,omitempty"`
+	Error           string                 `protobuf:"bytes,3,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *DeleteSecretResponse) Reset() {
+	*x = DeleteSecretResponse{}
+	mi := &file_secrets_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteSecretResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteSecretResponse) ProtoMessage() {}
+
+func (x *DeleteSecretResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_secrets_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteSecretResponse.ProtoReflect.Descriptor instead.
+func (*DeleteSecretResponse) Descriptor() ([]byte, []int) {
+	return file_secrets_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *DeleteSecretResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *DeleteSecretResponse) GetDeletedVersions() int32 {
+	if x != nil {
+		return x.DeletedVersions
+	}
+	return 0
+}
+
+func (x *DeleteSecretResponse) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
 var File_secrets_proto protoreflect.FileDescriptor
 
 const file_secrets_proto_rawDesc = "" +
@@ -236,9 +948,77 @@ const file_secrets_proto_rawDesc = "" +
 	"\aprivate\x18\x06 \x01(\bR\aprivate\x12\x1f\n" +
 	"\vowner_login\x18\a \x01(\tR\n" +
 	"ownerLogin\x12(\n" +
-	"\x10owner_avatar_url\x18\b \x01(\tR\x0eownerAvatarUrl2b\n" +
+	"\x10owner_avatar_url\x18\b \x01(\tR\x0eownerAvatarUrl\"\xb2\x01\n" +
+	"\x13UploadSecretRequest\x12!\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x1f\n" +
+	"\vowner_login\x18\x02 \x01(\tR\n" +
+	"ownerLogin\x12\x1b\n" +
+	"\trepo_name\x18\x03 \x01(\tR\brepoName\x12\x10\n" +
+	"\x03tag\x18\x04 \x01(\tR\x03tag\x12(\n" +
+	"\x10env_file_content\x18\x05 \x01(\fR\x0eenvFileContent\"|\n" +
+	"\x14UploadSecretResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
+	"\aversion\x18\x02 \x01(\x05R\aversion\x12\x1a\n" +
+	"\bchecksum\x18\x03 \x01(\tR\bchecksum\x12\x14\n" +
+	"\x05error\x18\x04 \x01(\tR\x05error\"|\n" +
+	"\x19ListSecretVersionsRequest\x12!\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x1f\n" +
+	"\vowner_login\x18\x02 \x01(\tR\n" +
+	"ownerLogin\x12\x1b\n" +
+	"\trepo_name\x18\x03 \x01(\tR\brepoName\"m\n" +
+	"\x1aListSecretVersionsResponse\x129\n" +
+	"\bversions\x18\x01 \x03(\v2\x1d.secretsservice.SecretVersionR\bversions\x12\x14\n" +
+	"\x05error\x18\x02 \x01(\tR\x05error\"\xba\x01\n" +
+	"\rSecretVersion\x12\x18\n" +
+	"\aversion\x18\x01 \x01(\x05R\aversion\x12\x10\n" +
+	"\x03tag\x18\x02 \x01(\tR\x03tag\x12\x1a\n" +
+	"\bchecksum\x18\x03 \x01(\tR\bchecksum\x12\x1f\n" +
+	"\vuploaded_by\x18\x04 \x01(\tR\n" +
+	"uploadedBy\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x05 \x01(\tR\tcreatedAt\x12!\n" +
+	"\fis_encrypted\x18\x06 \x01(\bR\visEncrypted\"\x92\x01\n" +
+	"\x15DownloadSecretRequest\x12!\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x1f\n" +
+	"\vowner_login\x18\x02 \x01(\tR\n" +
+	"ownerLogin\x12\x1b\n" +
+	"\trepo_name\x18\x03 \x01(\tR\brepoName\x12\x18\n" +
+	"\aversion\x18\x04 \x01(\x05R\aversion\"\x8f\x01\n" +
+	"\x1aDownloadSecretByTagRequest\x12!\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x1f\n" +
+	"\vowner_login\x18\x02 \x01(\tR\n" +
+	"ownerLogin\x12\x1b\n" +
+	"\trepo_name\x18\x03 \x01(\tR\brepoName\x12\x10\n" +
+	"\x03tag\x18\x04 \x01(\tR\x03tag\"\x9d\x02\n" +
+	"\x16DownloadSecretResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
+	"\aversion\x18\x02 \x01(\x05R\aversion\x12\x10\n" +
+	"\x03tag\x18\x03 \x01(\tR\x03tag\x12(\n" +
+	"\x10env_file_content\x18\x04 \x01(\fR\x0eenvFileContent\x12\x1a\n" +
+	"\bchecksum\x18\x05 \x01(\tR\bchecksum\x12\x1f\n" +
+	"\vuploaded_by\x18\x06 \x01(\tR\n" +
+	"uploadedBy\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\a \x01(\tR\tcreatedAt\x12\x14\n" +
+	"\x05error\x18\b \x01(\tR\x05error\x12!\n" +
+	"\fis_encrypted\x18\t \x01(\bR\visEncrypted\"\x90\x01\n" +
+	"\x13DeleteSecretRequest\x12!\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x1f\n" +
+	"\vowner_login\x18\x02 \x01(\tR\n" +
+	"ownerLogin\x12\x1b\n" +
+	"\trepo_name\x18\x03 \x01(\tR\brepoName\x12\x18\n" +
+	"\aversion\x18\x04 \x01(\x05R\aversion\"q\n" +
+	"\x14DeleteSecretResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12)\n" +
+	"\x10deleted_versions\x18\x02 \x01(\x05R\x0fdeletedVersions\x12\x14\n" +
+	"\x05error\x18\x03 \x01(\tR\x05error2\xd1\x04\n" +
 	"\x0eSecretsService\x12P\n" +
-	"\tListRepos\x12 .secretsservice.ListReposRequest\x1a!.secretsservice.ListReposResponseB7Z5github.com/kurs0n/SecretsService/proto;secretsserviceb\x06proto3"
+	"\tListRepos\x12 .secretsservice.ListReposRequest\x1a!.secretsservice.ListReposResponse\x12Y\n" +
+	"\fUploadSecret\x12#.secretsservice.UploadSecretRequest\x1a$.secretsservice.UploadSecretResponse\x12k\n" +
+	"\x12ListSecretVersions\x12).secretsservice.ListSecretVersionsRequest\x1a*.secretsservice.ListSecretVersionsResponse\x12_\n" +
+	"\x0eDownloadSecret\x12%.secretsservice.DownloadSecretRequest\x1a&.secretsservice.DownloadSecretResponse\x12i\n" +
+	"\x13DownloadSecretByTag\x12*.secretsservice.DownloadSecretByTagRequest\x1a&.secretsservice.DownloadSecretResponse\x12Y\n" +
+	"\fDeleteSecret\x12#.secretsservice.DeleteSecretRequest\x1a$.secretsservice.DeleteSecretResponseB7Z5github.com/kurs0n/SecretsService/proto;secretsserviceb\x06proto3"
 
 var (
 	file_secrets_proto_rawDescOnce sync.Once
@@ -252,21 +1032,42 @@ func file_secrets_proto_rawDescGZIP() []byte {
 	return file_secrets_proto_rawDescData
 }
 
-var file_secrets_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_secrets_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_secrets_proto_goTypes = []any{
-	(*ListReposRequest)(nil),  // 0: secretsservice.ListReposRequest
-	(*ListReposResponse)(nil), // 1: secretsservice.ListReposResponse
-	(*Repo)(nil),              // 2: secretsservice.Repo
+	(*ListReposRequest)(nil),           // 0: secretsservice.ListReposRequest
+	(*ListReposResponse)(nil),          // 1: secretsservice.ListReposResponse
+	(*Repo)(nil),                       // 2: secretsservice.Repo
+	(*UploadSecretRequest)(nil),        // 3: secretsservice.UploadSecretRequest
+	(*UploadSecretResponse)(nil),       // 4: secretsservice.UploadSecretResponse
+	(*ListSecretVersionsRequest)(nil),  // 5: secretsservice.ListSecretVersionsRequest
+	(*ListSecretVersionsResponse)(nil), // 6: secretsservice.ListSecretVersionsResponse
+	(*SecretVersion)(nil),              // 7: secretsservice.SecretVersion
+	(*DownloadSecretRequest)(nil),      // 8: secretsservice.DownloadSecretRequest
+	(*DownloadSecretByTagRequest)(nil), // 9: secretsservice.DownloadSecretByTagRequest
+	(*DownloadSecretResponse)(nil),     // 10: secretsservice.DownloadSecretResponse
+	(*DeleteSecretRequest)(nil),        // 11: secretsservice.DeleteSecretRequest
+	(*DeleteSecretResponse)(nil),       // 12: secretsservice.DeleteSecretResponse
 }
 var file_secrets_proto_depIdxs = []int32{
-	2, // 0: secretsservice.ListReposResponse.repos:type_name -> secretsservice.Repo
-	0, // 1: secretsservice.SecretsService.ListRepos:input_type -> secretsservice.ListReposRequest
-	1, // 2: secretsservice.SecretsService.ListRepos:output_type -> secretsservice.ListReposResponse
-	2, // [2:3] is the sub-list for method output_type
-	1, // [1:2] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	2,  // 0: secretsservice.ListReposResponse.repos:type_name -> secretsservice.Repo
+	7,  // 1: secretsservice.ListSecretVersionsResponse.versions:type_name -> secretsservice.SecretVersion
+	0,  // 2: secretsservice.SecretsService.ListRepos:input_type -> secretsservice.ListReposRequest
+	3,  // 3: secretsservice.SecretsService.UploadSecret:input_type -> secretsservice.UploadSecretRequest
+	5,  // 4: secretsservice.SecretsService.ListSecretVersions:input_type -> secretsservice.ListSecretVersionsRequest
+	8,  // 5: secretsservice.SecretsService.DownloadSecret:input_type -> secretsservice.DownloadSecretRequest
+	9,  // 6: secretsservice.SecretsService.DownloadSecretByTag:input_type -> secretsservice.DownloadSecretByTagRequest
+	11, // 7: secretsservice.SecretsService.DeleteSecret:input_type -> secretsservice.DeleteSecretRequest
+	1,  // 8: secretsservice.SecretsService.ListRepos:output_type -> secretsservice.ListReposResponse
+	4,  // 9: secretsservice.SecretsService.UploadSecret:output_type -> secretsservice.UploadSecretResponse
+	6,  // 10: secretsservice.SecretsService.ListSecretVersions:output_type -> secretsservice.ListSecretVersionsResponse
+	10, // 11: secretsservice.SecretsService.DownloadSecret:output_type -> secretsservice.DownloadSecretResponse
+	10, // 12: secretsservice.SecretsService.DownloadSecretByTag:output_type -> secretsservice.DownloadSecretResponse
+	12, // 13: secretsservice.SecretsService.DeleteSecret:output_type -> secretsservice.DeleteSecretResponse
+	8,  // [8:14] is the sub-list for method output_type
+	2,  // [2:8] is the sub-list for method input_type
+	2,  // [2:2] is the sub-list for extension type_name
+	2,  // [2:2] is the sub-list for extension extendee
+	0,  // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_secrets_proto_init() }
@@ -280,7 +1081,7 @@ func file_secrets_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_secrets_proto_rawDesc), len(file_secrets_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

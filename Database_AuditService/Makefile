@@ -1,26 +1,25 @@
-DB_CONTAINER=envini-audit-postgres
-DB_IMAGE=postgres:16-alpine
-DB_PORT=5433
-DB_USER=envini
-DB_PASSWORD=envini
-DB_NAME=envini
 
-.PHONY: db-build db-run db-stop db-remove db-logs db-shell
 
-db-build:
-	docker pull $(DB_IMAGE)
+.PHONY: run stop clean build logs
 
-db-run:
-	docker run -d --name $(DB_CONTAINER) -e POSTGRES_USER=$(DB_USER) -e POSTGRES_PASSWORD=$(DB_PASSWORD) -e POSTGRES_DB=$(DB_NAME) -p $(DB_PORT):$(DB_PORT) $(DB_IMAGE)
+run:
+	./run-db.sh
 
-db-stop:
-	docker stop $(DB_CONTAINER)
+stop:
+	docker stop envini-audit-postgres 2>/dev/null || echo "Container not running"
 
-db-remove:
-	docker rm $(DB_CONTAINER)
+clean:
+	docker stop envini-audit-postgres 2>/dev/null || true
+	docker rm envini-audit-postgres 2>/dev/null || true
 
-db-logs:
-	docker logs $(DB_CONTAINER)
+build:
+	docker build -t envini-audit-postgres .
 
-db-shell:
-	docker exec -it $(DB_CONTAINER) psql -U $(DB_USER) -d $(DB_NAME)
+logs:
+	docker logs -f envini-audit-postgres
+
+connect:
+	docker exec -it envini-audit-postgres psql -U envini -d envini -p 5433
+
+status:
+	docker ps | grep envini-audit-postgres || echo "Database not running"

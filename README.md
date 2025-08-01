@@ -1,13 +1,13 @@
 # Envini - Secure Environment Management System
 
-A comprehensive system for managing environment variables and secrets across GitHub repositories with secure authentication and CLI tools.
+A comprehensive system for managing environment variables and secrets across GitHub repositories with secure authentication, encryption, and CLI tools.
 
 ## 🏗️ Architecture Overview
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │      CLI        │    │   BackendGate   │    │   AuthService   │
-│   (Go Client)   │◄──►│   (NestJS API)  │◄──►│   (gRPC Server) │
+│   (Go Client)   │◄──►│   (NestJS API)  │◄──►│     (gRPC)      │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
                                 │                       │
                                 ▼                       ▼
@@ -15,6 +15,12 @@ A comprehensive system for managing environment variables and secrets across Git
                        │SecretOperation  │    │   PostgreSQL    │
                        │Service (gRPC)   │    │   (Sessions)    │
                        └─────────────────┘    └─────────────────┘
+                                │
+                                ▼
+                       ┌─────────────────┐
+                       │   PostgreSQL    │
+                       │   (Audit DB)    │
+                       └─────────────────┘
 ```
 
 ## 🚀 Components
@@ -31,17 +37,30 @@ A comprehensive system for managing environment variables and secrets across Git
 ### 2. **BackendGate** (NestJS REST API)
 - **Purpose**: REST API gateway that communicates with gRPC services
 - **Features**:
-  - REST endpoints for authentication
+  - REST endpoints for authentication and secrets management
   - Repository listing via SecretsService
   - JWT token validation and forwarding
+  - Secrets upload, download, and version management
+  - Tag-based secret retrieval
   - Clean separation between frontend and backend services
 
 ### 3. **SecretOperationService** (Go gRPC Server)
-- **Purpose**: Handles GitHub repository operations
+- **Purpose**: Handles GitHub repository operations and secrets management
 - **Features**:
   - List GitHub repositories
   - Secure access token handling
   - Repository metadata retrieval
+  - **Secrets Management**:
+    - Upload `.env` files with versioning
+    - Download secrets by version or tag
+    - List secret versions with metadata
+    - Delete specific versions or all versions
+  - **Security Features**:
+    - AES-256 encryption for all secrets
+    - Per-secret encryption keys
+    - Master key encryption for key management
+    - SHA256 checksums for integrity verification
+    - Comprehensive audit logging
 
 ### 4. **CLI** (Go Client)
 - **Purpose**: Command-line interface for users
@@ -52,12 +71,21 @@ A comprehensive system for managing environment variables and secrets across Git
   - Interactive loading animations
   - Help system
 
+### 5. **Audit Database** (PostgreSQL)
+- **Purpose**: Stores secrets, repositories, and audit logs
+- **Features**:
+  - Encrypted secrets storage
+  - Repository metadata
+  - Comprehensive audit trail
+  - Version control for secrets
+  - Tag-based organization
+
 ## 📋 Prerequisites
 
 - **Go** 1.21+
 - **Node.js** 18+
 - **PostgreSQL** 14+
-- **Docker** (for PostgreSQL container)
+- **Docker** (for PostgreSQL containers)
 - **GitHub OAuth App** credentials
 
 ## 🛠️ Installation & Setup
@@ -87,31 +115,51 @@ JWT_SECRET=your_jwt_secret_key
 
 #### BackendGate (.env)
 ```env
-AUTH_SERVICE_URL=locost:50052
+AUTH_SERVICE_URL=localhost:50052
 SECRETS_SERVICE_URL=localhost:50053
 PORT=3000
 ```
 
 #### SecretOperationService (.env)
 ```env
+DB_HOST=localhost
+DB_PORT=5433
+DB_USER=envini
+DB_PASSWORD=envini
+DB_NAME=envini_audit
 GITHUB_API_URL=https://api.github.com
+GRPC_PORT=50053
+# Master encryption key (32 bytes base64 encoded)
+MASTER_ENCRYPTION_KEY=your_master_encryption_key_here
 ```
 
 ### 3. Database Setup
 
-Start PostgreSQL using Docker:
+#### Auth Database (Port 5432)
 ```bash
-make postgres-start
+docker run -d \
+  --name postgres-auth \
+  -e POSTGRES_PASSWORD=envini \
+  -e POSTGRES_USER=envini \
+  -e POSTGRES_DB=envini \
+  -p 5432:5432 \
+  postgres:14
+```
+
+#### Audit Database (Port 5433)
+```bash
+cd Database_AuditService
+make run
 ```
 
 Or manually:
 ```bash
 docker run -d \
-  --name postgres-auth \alh
+  --name postgres-audit \
   -e POSTGRES_PASSWORD=envini \
   -e POSTGRES_USER=envini \
-  -e POSTGRES_DB=envini \
-  -p 5432:5432 \
+  -e POSTGRES_DB=envini_audit \
+  -p 5433:5433 \
   postgres:14
 ```
 
@@ -192,6 +240,93 @@ go build -o envini-cli
 #### Repository Operations
 - `GET /repos/list` - List GitHub repositories (requires JWT Bearer token)
 
+#### Secrets Management
+- `POST /secrets/upload/:ownerLogin/:repoName` - Upload `.env` file
+  - Body: `{ "tag": "production", "envFileContent": "base64_encoded_content" }`
+- `GET /secrets/versions/:ownerLogin/:repoName` - List secret versions
+- `GET /secrets/download/:ownerLogin/:repoName` - Download secret by version
+  - Query: `?version=1` or `?tag=production`
+- `GET /secrets/content/:ownerLogin/:repoName` - Get secret content as JSON
+  - Query: `?version=1` or `?tag=production`
+- `DELETE /secrets/delete/:ownerLogin/:repoName` - Delete secret
+  - Query: `?version=1` or `?all=true`
+
+## 🔐 Security Features
+
+### Authentication & Authorization
+- **JWT-based Authentication**: Secure session management with JWTs
+- **GitHub OAuth Device Flow**: Secure authentication without client secrets
+- **PostgreSQL Session Storage**: Persistent session management
+- **Repository Access Control**: Verify user has access to specific repositories
+
+### Data Protection
+- **AES-256 Encryption**: All secrets are encrypted at rest
+- **Per-Secret Keys**: Each secret has its own unique encryption key
+- **Master Key Encryption**: Secret keys are encrypted with a master key
+- **SHA256 Checksums**: Integrity verification for all secrets
+- **Base64 Encoding**: Secure transmission of encrypted data
+
+### Audit & Compliance
+- **Comprehensive Audit Logging**: All operations are logged with metadata
+- **User Tracking**: Track who performed each operation
+- **IP Address Logging**: Record client IP addresses
+- **User Agent Logging**: Track client applications
+- **Success/Failure Tracking**: Monitor operation outcomes
+
+## 📊 Database Schema
+
+### Audit Database (envini_audit)
+
+#### Repositories Table
+```sql
+CREATE TABLE repositories (
+  id BIGSERIAL PRIMARY KEY,
+  owner_login VARCHAR(255) NOT NULL,
+  repo_name VARCHAR(255) NOT NULL,
+  repo_id BIGINT NOT NULL,
+  full_name VARCHAR(500) NOT NULL,
+  html_url VARCHAR(1000) NOT NULL,
+  description TEXT,
+  is_private BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ,
+  updated_at TIMESTAMPTZ,
+  UNIQUE(owner_login, repo_name)
+);
+```
+
+#### Secrets Table
+```sql
+CREATE TABLE secrets (
+  id BIGSERIAL PRIMARY KEY,
+  repo_id BIGINT NOT NULL REFERENCES repositories(id) ON DELETE CASCADE,
+  version BIGINT NOT NULL,
+  tag VARCHAR(255),
+  env_data TEXT NOT NULL, -- Encrypted data
+  checksum VARCHAR(64) NOT NULL,
+  uploaded_by VARCHAR(255) NOT NULL,
+  created_at TIMESTAMPTZ,
+  is_encrypted BOOLEAN DEFAULT FALSE,
+  encrypted_key VARCHAR(255), -- Encrypted per-secret key
+  UNIQUE(repo_id, version)
+);
+```
+
+#### Audit Logs Table
+```sql
+CREATE TABLE audit_logs (
+  id BIGSERIAL PRIMARY KEY,
+  operation VARCHAR(50) NOT NULL,
+  repo_id BIGINT REFERENCES repositories(id),
+  secret_id BIGINT REFERENCES secrets(id),
+  user_login VARCHAR(255) NOT NULL,
+  ip_address VARCHAR(45),
+  user_agent TEXT,
+  success BOOLEAN NOT NULL,
+  error_message TEXT,
+  created_at TIMESTAMPTZ
+);
+```
+
 ## 🔧 Development
 
 ### Protocol Buffer Generation
@@ -202,13 +337,13 @@ make proto
 
 ### Database Management
 ```bash
-# Start PostgreSQL container
+# Start PostgreSQL containers
 make postgres-start
 
-# Stop PostgreSQL container
+# Stop PostgreSQL containers
 make postgres-stop
 
-# Remove PostgreSQL container
+# Remove PostgreSQL containers
 make postgres-clean
 ```
 
@@ -226,15 +361,6 @@ cd ../SecretOperationService
 go test ./...
 ```
 
-## 🔐 Security Features
-
-- **JWT-based Authentication**: Secure session management with JWTs
-- **GitHub OAuth Device Flow**: Secure authentication without client secrets
-- **PostgreSQL Session Storage**: Persistent session management
-- **gRPC Communication**: Type-safe inter-service communication
-- **Token Refresh**: Automatic token renewal
-- **Secure Logout**: Proper session cleanup
-
 ## 📁 Project Structure
 
 ```
@@ -247,10 +373,13 @@ Envini/
 │   ├── src/
 │   │   ├── auth/
 │   │   ├── repos/
+│   │   ├── secrets/             # NEW: Secrets management
 │   │   └── grpc/
 │   └── package.json
 ├── SecretOperationService/       # Go gRPC secrets service
 │   ├── internal/
+│   │   ├── server.go            # Enhanced with secrets management
+│   │   └── database.go          # NEW: Database operations
 │   ├── proto/
 │   └── main.go
 ├── CLI/                         # Go command-line client
@@ -258,10 +387,11 @@ Envini/
 │   ├── list/
 │   ├── upload/
 │   └── main.go
+├── Database_AuthService/        # Auth database setup
+├── Database_AuditService/       # NEW: Audit database setup
 ├── proto/                       # Protocol buffer definitions
 │   ├── auth.proto
-│   └── secrets.proto
-├── Database_AuthService/        # Database setup scripts
+│   └── secrets.proto            # Enhanced with new operations
 ├── Makefile                     # Build and deployment scripts
 └── README.md
 ```
@@ -271,42 +401,46 @@ Envini/
 ### Connection Issues
 If you see connection errors like `ECONNREFUSED 127.0.0.1:5000`, ensure:
 
-1. **AuthService is running** on port 50051:
+1. **AuthService is running** on port 50052:
    ```bash
    cd AuthService
    go run main.go
    ```
 
-2. **BackendGate environment** is correctly configured:
+2. **SecretOperationService is running** on port 50053:
+   ```bash
+   cd SecretOperationService
+   go run main.go
+   ```
+
+3. **BackendGate environment** is correctly configured:
    ```bash
    # Create BackendGate/.env file
-   echo "AUTH_SERVICE_URL=localhost:50051" > BackendGate/.env
-   echo "SECRETS_SERVICE_URL=localhost:50052" >> BackendGate/.env
+   echo "AUTH_SERVICE_URL=localhost:50052" > BackendGate/.env
+   echo "SECRETS_SERVICE_URL=localhost:50053" >> BackendGate/.env
    echo "PORT=3000" >> BackendGate/.env
    ```
 
-3. **Database is running** with correct credentials:
+4. **Databases are running** with correct credentials:
    ```bash
-   # Check if PostgreSQL is running
+   # Check if PostgreSQL containers are running
    docker ps | grep postgres
-   
-   # If not running, start it:
-   docker run -d \
-     --name postgres-auth \
-     -e POSTGRES_PASSWORD=envini \
-     -e POSTGRES_USER=envini \
-     -e POSTGRES_DB=envini \
-     -p 5432:5432 \
-     postgres:14
    ```
 
 ### Service Startup Order
 Start services in this order:
-1. PostgreSQL database
-2. AuthService (port 50051)
-3. SecretOperationService (port 50052)
+1. PostgreSQL databases (auth and audit)
+2. AuthService (port 50052)
+3. SecretOperationService (port 50053)
 4. BackendGate (port 3000)
 5. CLI
+
+### Encryption Issues
+If you encounter encryption-related errors:
+
+1. **Check Master Key**: Ensure `MASTER_ENCRYPTION_KEY` is set in SecretOperationService `.env`
+2. **Generate New Key**: Use `openssl rand -base64 32` to generate a new master key
+3. **Database Migration**: Restart SecretOperationService to apply schema changes
 
 ## 🤝 Contributing
 
@@ -329,4 +463,4 @@ For issues and questions:
 
 ---
 
-**Note**: This system is designed for secure environment variable management across GitHub repositories with enterprise-grade authentication and session management.
+**Note**: This system is designed for secure environment variable management across GitHub repositories with enterprise-grade authentication, encryption, and audit capabilities.
