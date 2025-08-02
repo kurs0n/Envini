@@ -87,16 +87,13 @@ export class AuthService {
 
   async getUserLogin(jwt: string) {
     try {
-      console.log('DEBUG: Calling AuthService getUserLogin with JWT:', jwt.substring(0, 20) + '...');
       const response = await this.authClientService.getUserLogin(jwt);
-      console.log('DEBUG: AuthService getUserLogin response:', response);
       return {
         userLogin: response.userLogin,
         error: response.error,
         errorDescription: response.errorDescription,
       };
     } catch (error) {
-      console.error('DEBUG: AuthService getUserLogin error:', error);
       throw new Error(`Failed to get user login: ${error.message}`);
     }
   }

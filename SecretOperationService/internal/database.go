@@ -39,14 +39,13 @@ func (Repository) TableName() string {
 
 type Secret struct {
 	ID           uint      `gorm:"primaryKey;autoIncrement"`
-	RepoID       uint      `gorm:"not null;uniqueIndex:idx_repo_version,priority:1"`
-	Version      int       `gorm:"not null;uniqueIndex:idx_repo_version,priority:2"`
-	Tag          string    `gorm:"size:255"`
+	RepoID       uint      `gorm:"not null;uniqueIndex:idx_repo_tag_version,priority:1"`
+	Tag          string    `gorm:"size:255;uniqueIndex:idx_repo_tag_version,priority:2"`
+	Version      int       `gorm:"not null;uniqueIndex:idx_repo_tag_version,priority:3"`
 	EnvData      string    `gorm:"type:text;not null"` // Changed from JSONB to TEXT for encrypted data
 	Checksum     string    `gorm:"size:64;not null"`
 	UploadedBy   string    `gorm:"size:255;not null"`
 	CreatedAt    time.Time `gorm:"autoCreateTime"`
-	IsEncrypted  bool      `gorm:"default:false"`
 	EncryptedKey string    `gorm:"size:255"` // Encrypted per-secret key
 }
 
@@ -239,6 +238,24 @@ func GetNextVersion(repoID uint) (int, error) {
 	return nextVersion, nil
 }
 
+// GetNextVersionForTag gets the next version for a specific tag
+// If the tag doesn't exist, it returns version 1
+// If the tag exists, it returns the next version for that tag
+func GetNextVersionForTag(repoID uint, tag string) (int, error) {
+	var maxVersion int
+	result := DB.Model(&Secret{}).
+		Where("repo_id = ? AND tag = ?", repoID, tag).
+		Select("COALESCE(MAX(version), 0)").
+		Scan(&maxVersion)
+
+	if result.Error != nil {
+		return 0, fmt.Errorf("failed to get next version for tag: %v", result.Error)
+	}
+
+	nextVersion := maxVersion + 1
+	return nextVersion, nil
+}
+
 // CreateSecret creates a new secret version with optional encryption
 func CreateSecret(repoID uint, version int, tag, envData, checksum, uploadedBy string, encrypt bool) (*Secret, error) {
 
@@ -278,7 +295,6 @@ func CreateSecret(repoID uint, version int, tag, envData, checksum, uploadedBy s
 		EnvData:      finalEnvData,
 		Checksum:     checksum,
 		UploadedBy:   uploadedBy,
-		IsEncrypted:  encrypt,
 		EncryptedKey: encryptedKey,
 	}
 
@@ -338,7 +354,7 @@ func ListSecretVersions(repoID uint) ([]Secret, error) {
 
 // DecryptSecretData decrypts the secret data if it's encrypted
 func DecryptSecretData(secret *Secret) (string, error) {
-	if !secret.IsEncrypted {
+	if secret.EncryptedKey == "" { // Check if encryptedKey is empty
 		return secret.EnvData, nil
 	}
 
@@ -426,7 +442,7 @@ func ListAllRepositoriesWithVersions() ([]RepositoryWithVersions, error) {
 				Checksum:    secret.Checksum,
 				UploadedBy:  secret.UploadedBy,
 				CreatedAt:   secret.CreatedAt,
-				IsEncrypted: secret.IsEncrypted,
+				IsEncrypted: secret.EncryptedKey != "", // Determine if encrypted based on EncryptedKey
 			}
 		}
 

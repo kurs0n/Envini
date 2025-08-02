@@ -504,7 +504,6 @@ type SecretVersion struct {
 	Checksum      string                 `protobuf:"bytes,3,opt,name=checksum,proto3" json:"checksum,omitempty"`
 	UploadedBy    string                 `protobuf:"bytes,4,opt,name=uploaded_by,json=uploadedBy,proto3" json:"uploaded_by,omitempty"`
 	CreatedAt     string                 `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	IsEncrypted   bool                   `protobuf:"varint,6,opt,name=is_encrypted,json=isEncrypted,proto3" json:"is_encrypted,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -572,13 +571,6 @@ func (x *SecretVersion) GetCreatedAt() string {
 		return x.CreatedAt
 	}
 	return ""
-}
-
-func (x *SecretVersion) GetIsEncrypted() bool {
-	if x != nil {
-		return x.IsEncrypted
-	}
-	return false
 }
 
 type DownloadSecretRequest struct {
@@ -743,7 +735,6 @@ type DownloadSecretResponse struct {
 	UploadedBy     string                 `protobuf:"bytes,6,opt,name=uploaded_by,json=uploadedBy,proto3" json:"uploaded_by,omitempty"`
 	CreatedAt      string                 `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	Error          string                 `protobuf:"bytes,8,opt,name=error,proto3" json:"error,omitempty"`
-	IsEncrypted    bool                   `protobuf:"varint,9,opt,name=is_encrypted,json=isEncrypted,proto3" json:"is_encrypted,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -832,13 +823,6 @@ func (x *DownloadSecretResponse) GetError() string {
 		return x.Error
 	}
 	return ""
-}
-
-func (x *DownloadSecretResponse) GetIsEncrypted() bool {
-	if x != nil {
-		return x.IsEncrypted
-	}
-	return false
 }
 
 type DeleteSecretRequest struct {
@@ -1250,7 +1234,7 @@ const file_secrets_proto_rawDesc = "" +
 	"user_login\x18\x04 \x01(\tR\tuserLogin\"m\n" +
 	"\x1aListSecretVersionsResponse\x129\n" +
 	"\bversions\x18\x01 \x03(\v2\x1d.secretsservice.SecretVersionR\bversions\x12\x14\n" +
-	"\x05error\x18\x02 \x01(\tR\x05error\"\xba\x01\n" +
+	"\x05error\x18\x02 \x01(\tR\x05error\"\x97\x01\n" +
 	"\rSecretVersion\x12\x18\n" +
 	"\aversion\x18\x01 \x01(\x05R\aversion\x12\x10\n" +
 	"\x03tag\x18\x02 \x01(\tR\x03tag\x12\x1a\n" +
@@ -1258,8 +1242,7 @@ const file_secrets_proto_rawDesc = "" +
 	"\vuploaded_by\x18\x04 \x01(\tR\n" +
 	"uploadedBy\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x05 \x01(\tR\tcreatedAt\x12!\n" +
-	"\fis_encrypted\x18\x06 \x01(\bR\visEncrypted\"\xb1\x01\n" +
+	"created_at\x18\x05 \x01(\tR\tcreatedAt\"\xb1\x01\n" +
 	"\x15DownloadSecretRequest\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x1f\n" +
 	"\vowner_login\x18\x02 \x01(\tR\n" +
@@ -1275,7 +1258,7 @@ const file_secrets_proto_rawDesc = "" +
 	"\trepo_name\x18\x03 \x01(\tR\brepoName\x12\x10\n" +
 	"\x03tag\x18\x04 \x01(\tR\x03tag\x12\x1d\n" +
 	"\n" +
-	"user_login\x18\x05 \x01(\tR\tuserLogin\"\x9d\x02\n" +
+	"user_login\x18\x05 \x01(\tR\tuserLogin\"\xfa\x01\n" +
 	"\x16DownloadSecretResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
 	"\aversion\x18\x02 \x01(\x05R\aversion\x12\x10\n" +
@@ -1286,8 +1269,7 @@ const file_secrets_proto_rawDesc = "" +
 	"uploadedBy\x12\x1d\n" +
 	"\n" +
 	"created_at\x18\a \x01(\tR\tcreatedAt\x12\x14\n" +
-	"\x05error\x18\b \x01(\tR\x05error\x12!\n" +
-	"\fis_encrypted\x18\t \x01(\bR\visEncrypted\"\xaf\x01\n" +
+	"\x05error\x18\b \x01(\tR\x05error\"\xaf\x01\n" +
 	"\x13DeleteSecretRequest\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x1f\n" +
 	"\vowner_login\x18\x02 \x01(\tR\n" +

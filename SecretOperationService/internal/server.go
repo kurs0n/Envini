@@ -173,13 +173,13 @@ func (s *Server) UploadSecret(ctx context.Context, req *secretsservice.UploadSec
 		}, nil
 	}
 
-	// 7. Get next version number
-	version, err := GetNextVersion(repo.ID)
+	// 7. Get next version number for this specific tag
+	version, err := GetNextVersionForTag(repo.ID, req.Tag)
 	if err != nil {
-		LogAuditEvent("UPLOAD", &repo.ID, nil, serviceName, requestID, req.UserLogin, false, "Failed to get next version: "+err.Error())
+		LogAuditEvent("UPLOAD", &repo.ID, nil, serviceName, requestID, req.UserLogin, false, "Failed to get next version for tag: "+err.Error())
 		return &secretsservice.UploadSecretResponse{
 			Success: false,
-			Error:   "Failed to get next version: " + err.Error(),
+			Error:   "Failed to get next version for tag: " + err.Error(),
 		}, nil
 	}
 
@@ -346,7 +346,6 @@ func (s *Server) DownloadSecret(ctx context.Context, req *secretsservice.Downloa
 		Checksum:       secret.Checksum,
 		UploadedBy:     secret.UploadedBy,
 		CreatedAt:      secret.CreatedAt.Format(time.RFC3339),
-		IsEncrypted:    secret.IsEncrypted,
 	}, nil
 }
 
@@ -426,7 +425,6 @@ func (s *Server) DownloadSecretByTag(ctx context.Context, req *secretsservice.Do
 		Checksum:       secret.Checksum,
 		UploadedBy:     secret.UploadedBy,
 		CreatedAt:      secret.CreatedAt.Format(time.RFC3339),
-		IsEncrypted:    secret.IsEncrypted,
 	}, nil
 }
 
@@ -529,12 +527,11 @@ func (s *Server) ListAllRepositoriesWithVersions(ctx context.Context, req *secre
 			versions := make([]*secretsservice.SecretVersion, len(repo.Versions))
 			for i, version := range repo.Versions {
 				versions[i] = &secretsservice.SecretVersion{
-					Version:     int32(version.Version),
-					Tag:         version.Tag,
-					Checksum:    version.Checksum,
-					UploadedBy:  version.UploadedBy,
-					CreatedAt:   version.CreatedAt.Format(time.RFC3339),
-					IsEncrypted: version.IsEncrypted,
+					Version:    int32(version.Version),
+					Tag:        version.Tag,
+					Checksum:   version.Checksum,
+					UploadedBy: version.UploadedBy,
+					CreatedAt:  version.CreatedAt.Format(time.RFC3339),
 				}
 			}
 
