@@ -33,6 +33,8 @@ A comprehensive system for managing environment variables and secrets across Git
   - PostgreSQL-backed session storage
   - Token refresh and validation
   - Secure logout functionality
+  - **NEW**: Username extraction from JWT tokens
+  - **NEW**: Session-based username retrieval
 
 ### 2. **BackendGate** (NestJS REST API)
 - **Purpose**: REST API gateway that communicates with gRPC services
@@ -43,6 +45,9 @@ A comprehensive system for managing environment variables and secrets across Git
   - Secrets upload, download, and version management
   - Tag-based secret retrieval
   - Clean separation between frontend and backend services
+  - **NEW**: Enhanced secrets management with tag-specific versioning
+  - **NEW**: Repository listing with version information
+  - **NEW**: Username propagation through gRPC metadata
 
 ### 3. **SecretOperationService** (Go gRPC Server)
 - **Purpose**: Handles GitHub repository operations and secrets management
@@ -55,12 +60,16 @@ A comprehensive system for managing environment variables and secrets across Git
     - Download secrets by version or tag
     - List secret versions with metadata
     - Delete specific versions or all versions
+    - **NEW**: Tag-specific versioning (separate version sequences per tag)
+    - **NEW**: Repository listing with all secret versions
   - **Security Features**:
     - AES-256 encryption for all secrets
     - Per-secret encryption keys
     - Master key encryption for key management
     - SHA256 checksums for integrity verification
     - Comprehensive audit logging
+    - **NEW**: Username tracking in audit logs
+    - **NEW**: Service name and request ID tracking
 
 ### 4. **CLI** (Go Client)
 - **Purpose**: Command-line interface for users
@@ -70,6 +79,11 @@ A comprehensive system for managing environment variables and secrets across Git
   - File upload capabilities
   - Interactive loading animations
   - Help system
+  - **NEW**: Git repository auto-detection
+  - **NEW**: Tag-specific secret management
+  - **NEW**: Smart defaults (development tag, latest version)
+  - **NEW**: Flag-based command options
+  - **NEW**: Comprehensive secret operations (upload, download, delete, versions)
 
 ### 5. **Audit Database** (PostgreSQL)
 - **Purpose**: Stores secrets, repositories, and audit logs
@@ -79,6 +93,9 @@ A comprehensive system for managing environment variables and secrets across Git
   - Comprehensive audit trail
   - Version control for secrets
   - Tag-based organization
+  - **NEW**: Username tracking in audit logs
+  - **NEW**: Service name and request ID tracking
+  - **NEW**: Tag-specific version constraints
 
 ## 📋 Prerequisites
 
@@ -163,7 +180,27 @@ docker run -d \
   postgres:14
 ```
 
-### 4. Generate Protocol Buffers
+### 4. Database Migrations
+
+Run the following SQL commands to set up the new schema:
+
+#### Update Secrets Table Constraint
+```sql
+-- Connect to audit database
+docker exec -it postgres-audit psql -h localhost -p 5433 -U envini -d envini_audit
+
+-- Drop old constraint and create new tag-specific constraint
+DROP INDEX IF EXISTS idx_repo_version;
+CREATE UNIQUE INDEX idx_repo_tag_version ON secrets (repo_id, tag, version);
+```
+
+#### Add Username Column to Audit Logs
+```sql
+-- Add username column to audit_logs
+ALTER TABLE audit_logs ADD COLUMN IF NOT EXISTS username VARCHAR(255) NOT NULL DEFAULT 'unknown';
+```
+
+### 5. Generate Protocol Buffers
 ```bash
 make proto
 ```
@@ -195,8 +232,8 @@ npm run start:dev
 ```bash
 cd CLI
 go mod tidy
-go build -o envini-cli
-./envini-cli
+go build -o envini
+./envini
 ```
 
 ## 📖 Usage
@@ -206,7 +243,7 @@ go build -o envini-cli
 #### Authentication
 ```bash
 # Start GitHub authentication
-./envini-cli auth
+envini auth
 
 # This will:
 # 1. Display a device code and verification URL
@@ -217,16 +254,61 @@ go build -o envini-cli
 #### Repository Operations
 ```bash
 # List your GitHub repositories
-./envini-cli list
+envini repos
 
-# Upload a file (placeholder for future implementation)
-./envini-cli upload <file-path>
+# List repositories with all secret versions
+envini repos-with-versions
+```
+
+#### Secret Management (NEW!)
+
+##### Upload Secrets
+```bash
+# Auto-detect repository from git (recommended)
+envini upload .env                    # Uses "development" tag by default
+envini upload .env --tag=production   # Upload with custom tag
+envini upload .env --tag=staging      # Upload with staging tag
+
+# Explicit repository
+envini upload kurs0n 8080-emulator .env
+envini upload kurs0n 8080-emulator .env --tag=production
+```
+
+##### Download Secrets
+```bash
+# Auto-detect repository from git
+envini download .env.downloaded       # Downloads latest version
+envini download .env.downloaded --version=1  # Downloads specific version
+
+# Explicit repository
+envini download kurs0n 8080-emulator .env.downloaded
+envini download kurs0n 8080-emulator .env.downloaded --version=1
+```
+
+##### List Secret Versions
+```bash
+# Auto-detect repository from git
+envini versions
+
+# Explicit repository
+envini versions kurs0n 8080-emulator
+```
+
+##### Delete Secrets
+```bash
+# Auto-detect repository from git
+envini delete                        # Deletes latest version
+envini delete --version=1           # Deletes specific version
+
+# Explicit repository
+envini delete kurs0n 8080-emulator
+envini delete kurs0n 8080-emulator --version=1
 ```
 
 #### Help
 ```bash
 # Show available commands
-./envini-cli help
+envini help
 ```
 
 ### API Endpoints (BackendGate)
@@ -239,6 +321,7 @@ go build -o envini-cli
 
 #### Repository Operations
 - `GET /repos/list` - List GitHub repositories (requires JWT Bearer token)
+- `GET /repos/list-with-versions` - List repositories with all secret versions
 
 #### Secrets Management
 - `POST /secrets/upload/:ownerLogin/:repoName` - Upload `.env` file
@@ -258,6 +341,7 @@ go build -o envini-cli
 - **GitHub OAuth Device Flow**: Secure authentication without client secrets
 - **PostgreSQL Session Storage**: Persistent session management
 - **Repository Access Control**: Verify user has access to specific repositories
+- **NEW**: Username tracking in audit logs
 
 ### Data Protection
 - **AES-256 Encryption**: All secrets are encrypted at rest
@@ -265,13 +349,16 @@ go build -o envini-cli
 - **Master Key Encryption**: Secret keys are encrypted with a master key
 - **SHA256 Checksums**: Integrity verification for all secrets
 - **Base64 Encoding**: Secure transmission of encrypted data
+- **NEW**: Tag-specific versioning for better organization
 
 ### Audit & Compliance
 - **Comprehensive Audit Logging**: All operations are logged with metadata
 - **User Tracking**: Track who performed each operation
-- **IP Address Logging**: Record client IP addresses
-- **User Agent Logging**: Track client applications
+- **Service Tracking**: Track which service performed operations
+- **Request ID Tracking**: Unique request identifiers for tracing
 - **Success/Failure Tracking**: Monitor operation outcomes
+- **NEW**: Username extraction from JWT tokens
+- **NEW**: Service name and request ID in audit logs
 
 ## 📊 Database Schema
 
@@ -294,38 +381,67 @@ CREATE TABLE repositories (
 );
 ```
 
-#### Secrets Table
+#### Secrets Table (UPDATED)
 ```sql
 CREATE TABLE secrets (
   id BIGSERIAL PRIMARY KEY,
   repo_id BIGINT NOT NULL REFERENCES repositories(id) ON DELETE CASCADE,
+  tag VARCHAR(255) NOT NULL,
   version BIGINT NOT NULL,
-  tag VARCHAR(255),
   env_data TEXT NOT NULL, -- Encrypted data
   checksum VARCHAR(64) NOT NULL,
   uploaded_by VARCHAR(255) NOT NULL,
   created_at TIMESTAMPTZ,
-  is_encrypted BOOLEAN DEFAULT FALSE,
   encrypted_key VARCHAR(255), -- Encrypted per-secret key
-  UNIQUE(repo_id, version)
+  UNIQUE(repo_id, tag, version) -- NEW: Tag-specific versioning
 );
 ```
 
-#### Audit Logs Table
+#### Audit Logs Table (UPDATED)
 ```sql
 CREATE TABLE audit_logs (
   id BIGSERIAL PRIMARY KEY,
   operation VARCHAR(50) NOT NULL,
   repo_id BIGINT REFERENCES repositories(id),
   secret_id BIGINT REFERENCES secrets(id),
-  user_login VARCHAR(255) NOT NULL,
-  ip_address VARCHAR(45),
-  user_agent TEXT,
+  username VARCHAR(255) NOT NULL, -- NEW: Username tracking
+  service_name VARCHAR(100) NOT NULL, -- NEW: Service tracking
+  request_id VARCHAR(255), -- NEW: Request ID tracking
   success BOOLEAN NOT NULL,
   error_message TEXT,
   created_at TIMESTAMPTZ
 );
 ```
+
+## 🆕 New Features
+
+### Tag-Specific Versioning
+- **Separate version sequences** for each tag (development, production, staging, etc.)
+- **Example**: v1(development), v2(development), v1(production), v2(production)
+- **Smart defaults**: "development" tag by default, "latest" version by default
+
+### Git Repository Auto-Detection
+- **Automatic repository detection** from git remote
+- **Supports both HTTPS and SSH** git remote formats
+- **Fallback to explicit repository** if git detection fails
+- **Visual feedback** showing detected repository
+
+### Enhanced CLI Commands
+- **Simplified command names**: `upload`, `download`, `delete`, `versions`
+- **Flag-based options**: `--tag=production`, `--version=1`
+- **Smart defaults**: Development tag, latest version
+- **Comprehensive help**: Detailed usage examples
+
+### Improved Audit Logging
+- **Username tracking**: Extract and log usernames from JWT tokens
+- **Service tracking**: Track which service performed operations
+- **Request ID tracking**: Unique identifiers for request tracing
+- **Cleaner output**: Removed redundant information from CLI output
+
+### Security Enhancements
+- **Removed redundant encryption flag**: Encryption status determined by `EncryptedKey` field
+- **Enhanced constraint**: Tag-specific unique constraints
+- **Better error handling**: More descriptive error messages
 
 ## 🔧 Development
 
@@ -367,31 +483,34 @@ go test ./...
 Envini/
 ├── AuthService/                 # Go gRPC authentication service
 │   ├── internal/
+│   │   ├── server.go           # Enhanced with username extraction
+│   │   └── session.go          # Session management
 │   ├── proto/
 │   └── main.go
 ├── BackendGate/                 # NestJS REST API gateway
 │   ├── src/
 │   │   ├── auth/
-│   │   ├── repos/
-│   │   ├── secrets/             # NEW: Secrets management
+│   │   ├── repos/              # Enhanced with version listing
+│   │   ├── secrets/            # Complete secrets management
 │   │   └── grpc/
 │   └── package.json
 ├── SecretOperationService/       # Go gRPC secrets service
 │   ├── internal/
-│   │   ├── server.go            # Enhanced with secrets management
-│   │   └── database.go          # NEW: Database operations
+│   │   ├── server.go           # Enhanced with tag-specific versioning
+│   │   └── database.go         # Enhanced with new constraints
 │   ├── proto/
 │   └── main.go
 ├── CLI/                         # Go command-line client
 │   ├── auth/
-│   ├── list/
-│   ├── upload/
-│   └── main.go
+│   ├── list/                   # Enhanced with version listing
+│   ├── secrets/                # NEW: Complete secrets management
+│   ├── upload/                 # Legacy upload
+│   └── main.go                 # Enhanced with git detection
 ├── Database_AuthService/        # Auth database setup
-├── Database_AuditService/       # NEW: Audit database setup
+├── Database_AuditService/       # Audit database setup
 ├── proto/                       # Protocol buffer definitions
-│   ├── auth.proto
-│   └── secrets.proto            # Enhanced with new operations
+│   ├── auth.proto              # Enhanced with username methods
+│   └── secrets.proto           # Enhanced with version listing
 ├── Makefile                     # Build and deployment scripts
 └── README.md
 ```
@@ -442,6 +561,13 @@ If you encounter encryption-related errors:
 2. **Generate New Key**: Use `openssl rand -base64 32` to generate a new master key
 3. **Database Migration**: Restart SecretOperationService to apply schema changes
 
+### Database Constraint Issues
+If you see duplicate key constraint errors:
+
+1. **Run Migration**: Execute the database migration scripts
+2. **Check Constraints**: Verify the new tag-specific constraints are in place
+3. **Restart Services**: Restart SecretOperationService after migration
+
 ## 🤝 Contributing
 
 1. Fork the repository
@@ -463,4 +589,4 @@ For issues and questions:
 
 ---
 
-**Note**: This system is designed for secure environment variable management across GitHub repositories with enterprise-grade authentication, encryption, and audit capabilities.
+**Note**: This system is designed for secure environment variable management across GitHub repositories with enterprise-grade authentication, encryption, and audit capabilities. The new tag-specific versioning system provides better organization and the git auto-detection feature makes the CLI much more user-friendly.
