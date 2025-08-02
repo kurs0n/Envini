@@ -24,6 +24,7 @@ const (
 type ListReposRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	UserLogin     string                 `protobuf:"bytes,2,opt,name=user_login,json=userLogin,proto3" json:"user_login,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -61,6 +62,13 @@ func (*ListReposRequest) Descriptor() ([]byte, []int) {
 func (x *ListReposRequest) GetAccessToken() string {
 	if x != nil {
 		return x.AccessToken
+	}
+	return ""
+}
+
+func (x *ListReposRequest) GetUserLogin() string {
+	if x != nil {
+		return x.UserLogin
 	}
 	return ""
 }
@@ -224,6 +232,7 @@ type UploadSecretRequest struct {
 	RepoName       string                 `protobuf:"bytes,3,opt,name=repo_name,json=repoName,proto3" json:"repo_name,omitempty"`
 	Tag            string                 `protobuf:"bytes,4,opt,name=tag,proto3" json:"tag,omitempty"`                                               // Optional tag for version (e.g., "v1.0.0", "production")
 	EnvFileContent []byte                 `protobuf:"bytes,5,opt,name=env_file_content,json=envFileContent,proto3" json:"env_file_content,omitempty"` // Raw .env file content (base64 encoded)
+	UserLogin      string                 `protobuf:"bytes,6,opt,name=user_login,json=userLogin,proto3" json:"user_login,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -291,6 +300,13 @@ func (x *UploadSecretRequest) GetEnvFileContent() []byte {
 		return x.EnvFileContent
 	}
 	return nil
+}
+
+func (x *UploadSecretRequest) GetUserLogin() string {
+	if x != nil {
+		return x.UserLogin
+	}
+	return ""
 }
 
 type UploadSecretResponse struct {
@@ -366,6 +382,7 @@ type ListSecretVersionsRequest struct {
 	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
 	OwnerLogin    string                 `protobuf:"bytes,2,opt,name=owner_login,json=ownerLogin,proto3" json:"owner_login,omitempty"`
 	RepoName      string                 `protobuf:"bytes,3,opt,name=repo_name,json=repoName,proto3" json:"repo_name,omitempty"`
+	UserLogin     string                 `protobuf:"bytes,4,opt,name=user_login,json=userLogin,proto3" json:"user_login,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -417,6 +434,13 @@ func (x *ListSecretVersionsRequest) GetOwnerLogin() string {
 func (x *ListSecretVersionsRequest) GetRepoName() string {
 	if x != nil {
 		return x.RepoName
+	}
+	return ""
+}
+
+func (x *ListSecretVersionsRequest) GetUserLogin() string {
+	if x != nil {
+		return x.UserLogin
 	}
 	return ""
 }
@@ -563,6 +587,7 @@ type DownloadSecretRequest struct {
 	OwnerLogin    string                 `protobuf:"bytes,2,opt,name=owner_login,json=ownerLogin,proto3" json:"owner_login,omitempty"`
 	RepoName      string                 `protobuf:"bytes,3,opt,name=repo_name,json=repoName,proto3" json:"repo_name,omitempty"`
 	Version       int32                  `protobuf:"varint,4,opt,name=version,proto3" json:"version,omitempty"` // 0 means latest version
+	UserLogin     string                 `protobuf:"bytes,5,opt,name=user_login,json=userLogin,proto3" json:"user_login,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -625,12 +650,20 @@ func (x *DownloadSecretRequest) GetVersion() int32 {
 	return 0
 }
 
+func (x *DownloadSecretRequest) GetUserLogin() string {
+	if x != nil {
+		return x.UserLogin
+	}
+	return ""
+}
+
 type DownloadSecretByTagRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
 	OwnerLogin    string                 `protobuf:"bytes,2,opt,name=owner_login,json=ownerLogin,proto3" json:"owner_login,omitempty"`
 	RepoName      string                 `protobuf:"bytes,3,opt,name=repo_name,json=repoName,proto3" json:"repo_name,omitempty"`
 	Tag           string                 `protobuf:"bytes,4,opt,name=tag,proto3" json:"tag,omitempty"` // Tag to search for
+	UserLogin     string                 `protobuf:"bytes,5,opt,name=user_login,json=userLogin,proto3" json:"user_login,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -689,6 +722,13 @@ func (x *DownloadSecretByTagRequest) GetRepoName() string {
 func (x *DownloadSecretByTagRequest) GetTag() string {
 	if x != nil {
 		return x.Tag
+	}
+	return ""
+}
+
+func (x *DownloadSecretByTagRequest) GetUserLogin() string {
+	if x != nil {
+		return x.UserLogin
 	}
 	return ""
 }
@@ -807,6 +847,7 @@ type DeleteSecretRequest struct {
 	OwnerLogin    string                 `protobuf:"bytes,2,opt,name=owner_login,json=ownerLogin,proto3" json:"owner_login,omitempty"`
 	RepoName      string                 `protobuf:"bytes,3,opt,name=repo_name,json=repoName,proto3" json:"repo_name,omitempty"`
 	Version       int32                  `protobuf:"varint,4,opt,name=version,proto3" json:"version,omitempty"` // 0 means delete all versions
+	UserLogin     string                 `protobuf:"bytes,5,opt,name=user_login,json=userLogin,proto3" json:"user_login,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -867,6 +908,13 @@ func (x *DeleteSecretRequest) GetVersion() int32 {
 		return x.Version
 	}
 	return 0
+}
+
+func (x *DeleteSecretRequest) GetUserLogin() string {
+	if x != nil {
+		return x.UserLogin
+	}
+	return ""
 }
 
 type DeleteSecretResponse struct {
@@ -932,6 +980,7 @@ func (x *DeleteSecretResponse) GetError() string {
 type ListAllRepositoriesWithVersionsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	UserLogin     string                 `protobuf:"bytes,2,opt,name=user_login,json=userLogin,proto3" json:"user_login,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -969,6 +1018,13 @@ func (*ListAllRepositoriesWithVersionsRequest) Descriptor() ([]byte, []int) {
 func (x *ListAllRepositoriesWithVersionsRequest) GetAccessToken() string {
 	if x != nil {
 		return x.AccessToken
+	}
+	return ""
+}
+
+func (x *ListAllRepositoriesWithVersionsRequest) GetUserLogin() string {
+	if x != nil {
+		return x.UserLogin
 	}
 	return ""
 }
@@ -1153,9 +1209,11 @@ var File_secrets_proto protoreflect.FileDescriptor
 
 const file_secrets_proto_rawDesc = "" +
 	"\n" +
-	"\rsecrets.proto\x12\x0esecretsservice\"5\n" +
+	"\rsecrets.proto\x12\x0esecretsservice\"T\n" +
 	"\x10ListReposRequest\x12!\n" +
-	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\"U\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x1d\n" +
+	"\n" +
+	"user_login\x18\x02 \x01(\tR\tuserLogin\"U\n" +
 	"\x11ListReposResponse\x12*\n" +
 	"\x05repos\x18\x01 \x03(\v2\x14.secretsservice.RepoR\x05repos\x12\x14\n" +
 	"\x05error\x18\x02 \x01(\tR\x05error\"\xe9\x01\n" +
@@ -1168,24 +1226,28 @@ const file_secrets_proto_rawDesc = "" +
 	"\aprivate\x18\x06 \x01(\bR\aprivate\x12\x1f\n" +
 	"\vowner_login\x18\a \x01(\tR\n" +
 	"ownerLogin\x12(\n" +
-	"\x10owner_avatar_url\x18\b \x01(\tR\x0eownerAvatarUrl\"\xb2\x01\n" +
+	"\x10owner_avatar_url\x18\b \x01(\tR\x0eownerAvatarUrl\"\xd1\x01\n" +
 	"\x13UploadSecretRequest\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x1f\n" +
 	"\vowner_login\x18\x02 \x01(\tR\n" +
 	"ownerLogin\x12\x1b\n" +
 	"\trepo_name\x18\x03 \x01(\tR\brepoName\x12\x10\n" +
 	"\x03tag\x18\x04 \x01(\tR\x03tag\x12(\n" +
-	"\x10env_file_content\x18\x05 \x01(\fR\x0eenvFileContent\"|\n" +
+	"\x10env_file_content\x18\x05 \x01(\fR\x0eenvFileContent\x12\x1d\n" +
+	"\n" +
+	"user_login\x18\x06 \x01(\tR\tuserLogin\"|\n" +
 	"\x14UploadSecretResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
 	"\aversion\x18\x02 \x01(\x05R\aversion\x12\x1a\n" +
 	"\bchecksum\x18\x03 \x01(\tR\bchecksum\x12\x14\n" +
-	"\x05error\x18\x04 \x01(\tR\x05error\"|\n" +
+	"\x05error\x18\x04 \x01(\tR\x05error\"\x9b\x01\n" +
 	"\x19ListSecretVersionsRequest\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x1f\n" +
 	"\vowner_login\x18\x02 \x01(\tR\n" +
 	"ownerLogin\x12\x1b\n" +
-	"\trepo_name\x18\x03 \x01(\tR\brepoName\"m\n" +
+	"\trepo_name\x18\x03 \x01(\tR\brepoName\x12\x1d\n" +
+	"\n" +
+	"user_login\x18\x04 \x01(\tR\tuserLogin\"m\n" +
 	"\x1aListSecretVersionsResponse\x129\n" +
 	"\bversions\x18\x01 \x03(\v2\x1d.secretsservice.SecretVersionR\bversions\x12\x14\n" +
 	"\x05error\x18\x02 \x01(\tR\x05error\"\xba\x01\n" +
@@ -1197,19 +1259,23 @@ const file_secrets_proto_rawDesc = "" +
 	"uploadedBy\x12\x1d\n" +
 	"\n" +
 	"created_at\x18\x05 \x01(\tR\tcreatedAt\x12!\n" +
-	"\fis_encrypted\x18\x06 \x01(\bR\visEncrypted\"\x92\x01\n" +
+	"\fis_encrypted\x18\x06 \x01(\bR\visEncrypted\"\xb1\x01\n" +
 	"\x15DownloadSecretRequest\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x1f\n" +
 	"\vowner_login\x18\x02 \x01(\tR\n" +
 	"ownerLogin\x12\x1b\n" +
 	"\trepo_name\x18\x03 \x01(\tR\brepoName\x12\x18\n" +
-	"\aversion\x18\x04 \x01(\x05R\aversion\"\x8f\x01\n" +
+	"\aversion\x18\x04 \x01(\x05R\aversion\x12\x1d\n" +
+	"\n" +
+	"user_login\x18\x05 \x01(\tR\tuserLogin\"\xae\x01\n" +
 	"\x1aDownloadSecretByTagRequest\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x1f\n" +
 	"\vowner_login\x18\x02 \x01(\tR\n" +
 	"ownerLogin\x12\x1b\n" +
 	"\trepo_name\x18\x03 \x01(\tR\brepoName\x12\x10\n" +
-	"\x03tag\x18\x04 \x01(\tR\x03tag\"\x9d\x02\n" +
+	"\x03tag\x18\x04 \x01(\tR\x03tag\x12\x1d\n" +
+	"\n" +
+	"user_login\x18\x05 \x01(\tR\tuserLogin\"\x9d\x02\n" +
 	"\x16DownloadSecretResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
 	"\aversion\x18\x02 \x01(\x05R\aversion\x12\x10\n" +
@@ -1221,19 +1287,23 @@ const file_secrets_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\a \x01(\tR\tcreatedAt\x12\x14\n" +
 	"\x05error\x18\b \x01(\tR\x05error\x12!\n" +
-	"\fis_encrypted\x18\t \x01(\bR\visEncrypted\"\x90\x01\n" +
+	"\fis_encrypted\x18\t \x01(\bR\visEncrypted\"\xaf\x01\n" +
 	"\x13DeleteSecretRequest\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x1f\n" +
 	"\vowner_login\x18\x02 \x01(\tR\n" +
 	"ownerLogin\x12\x1b\n" +
 	"\trepo_name\x18\x03 \x01(\tR\brepoName\x12\x18\n" +
-	"\aversion\x18\x04 \x01(\x05R\aversion\"q\n" +
+	"\aversion\x18\x04 \x01(\x05R\aversion\x12\x1d\n" +
+	"\n" +
+	"user_login\x18\x05 \x01(\tR\tuserLogin\"q\n" +
 	"\x14DeleteSecretResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12)\n" +
 	"\x10deleted_versions\x18\x02 \x01(\x05R\x0fdeletedVersions\x12\x14\n" +
-	"\x05error\x18\x03 \x01(\tR\x05error\"K\n" +
+	"\x05error\x18\x03 \x01(\tR\x05error\"j\n" +
 	"&ListAllRepositoriesWithVersionsRequest\x12!\n" +
-	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\"\x8b\x01\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x1d\n" +
+	"\n" +
+	"user_login\x18\x02 \x01(\tR\tuserLogin\"\x8b\x01\n" +
 	"'ListAllRepositoriesWithVersionsResponse\x12J\n" +
 	"\frepositories\x18\x01 \x03(\v2&.secretsservice.RepositoryWithVersionsR\frepositories\x12\x14\n" +
 	"\x05error\x18\x02 \x01(\tR\x05error\"\xf1\x02\n" +

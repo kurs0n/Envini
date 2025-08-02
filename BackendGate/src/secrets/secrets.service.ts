@@ -63,7 +63,8 @@ export class SecretsService {
   ): Promise<UploadSecretResult> {
     try {
       const authTokenResponse = await this.authService.getAuthToken(jwt);
-      
+      const userLoginResponse = await this.authService.getUserLogin(jwt);
+
       if (authTokenResponse.error) {
         return {
           error: authTokenResponse.error,
@@ -78,12 +79,20 @@ export class SecretsService {
         };
       }
 
+      if(!userLoginResponse.userLogin) {
+        return {
+          error: 'no_user_login',
+          errorDescription: 'No user login received from auth service',
+        };
+      }
+
       const response = await this.secretOperationClient.uploadSecret({
         accessToken: authTokenResponse.accessToken,
         ownerLogin,
         repoName,
         tag,
         envFileContent,
+        userLogin: userLoginResponse.userLogin,
       });
 
       if (response.success) {
@@ -113,7 +122,8 @@ export class SecretsService {
   ): Promise<ListSecretVersionsResult> {
     try {
       const authTokenResponse = await this.authService.getAuthToken(jwt);
-      
+      const userLoginResponse = await this.authService.getUserLogin(jwt);
+
       if (authTokenResponse.error) {
         return {
           error: authTokenResponse.error,
@@ -128,10 +138,18 @@ export class SecretsService {
         };
       }
 
+      if(!userLoginResponse.userLogin) {
+        return {
+          error: 'no_user_login',
+          errorDescription: 'No user login received from auth service',
+        };
+      }
+
       const response = await this.secretOperationClient.listSecretVersions({
         accessToken: authTokenResponse.accessToken,
         ownerLogin,
         repoName,
+        userLogin: userLoginResponse.userLogin,
       });
 
       if (response.versions) {
@@ -160,7 +178,8 @@ export class SecretsService {
   ): Promise<DownloadSecretResult> {
     try {
       const authTokenResponse = await this.authService.getAuthToken(jwt);
-      
+      const userLoginResponse = await this.authService.getUserLogin(jwt);
+
       if (authTokenResponse.error) {
         return {
           error: authTokenResponse.error,
@@ -175,11 +194,19 @@ export class SecretsService {
         };
       }
 
+      if(!userLoginResponse.userLogin) {
+        return {
+          error: 'no_user_login',
+          errorDescription: 'No user login received from auth service',
+        };
+      }
+
       const response = await this.secretOperationClient.downloadSecret({
         accessToken: authTokenResponse.accessToken,
         ownerLogin,
         repoName,
         version,
+        userLogin: userLoginResponse.userLogin,
       });
 
       if (response.success) {
@@ -214,7 +241,8 @@ export class SecretsService {
   ): Promise<DownloadSecretResult> {
     try {
       const authTokenResponse = await this.authService.getAuthToken(jwt);
-      
+      const userLoginResponse = await this.authService.getUserLogin(jwt);
+
       if (authTokenResponse.error) {
         return {
           error: authTokenResponse.error,
@@ -229,11 +257,19 @@ export class SecretsService {
         };
       }
 
+      if(!userLoginResponse.userLogin) {
+        return {
+          error: 'no_user_login',
+          errorDescription: 'No user login received from auth service',
+        };
+      }
+
       const response = await this.secretOperationClient.downloadSecretByTag({
         accessToken: authTokenResponse.accessToken,
         ownerLogin,
         repoName,
         tag,
+        userLogin: userLoginResponse.userLogin,
       });
 
       if (response.success) {
@@ -268,7 +304,8 @@ export class SecretsService {
   ): Promise<DeleteSecretResult> {
     try {
       const authTokenResponse = await this.authService.getAuthToken(jwt);
-      
+      const userLoginResponse = await this.authService.getUserLogin(jwt);
+
       if (authTokenResponse.error) {
         return {
           error: authTokenResponse.error,
@@ -283,11 +320,19 @@ export class SecretsService {
         };
       }
 
+      if(!userLoginResponse.userLogin) {
+        return {
+          error: 'no_user_login',
+          errorDescription: 'No user login received from auth service',
+        };
+      }
+
       const response = await this.secretOperationClient.deleteSecret({
         accessToken: authTokenResponse.accessToken,
         ownerLogin,
         repoName,
         version,
+        userLogin: userLoginResponse.userLogin,
       });
 
       if (response.success) {

@@ -59,6 +59,7 @@ type AuditLog struct {
 	Operation    string    `gorm:"size:50;not null"`
 	RepoID       *uint     `gorm:"index"`
 	SecretID     *uint     `gorm:"index"`
+	Username     string    `gorm:"size:255;not null"`
 	ServiceName  string    `gorm:"size:100;not null"`
 	RequestID    string    `gorm:"size:255"`
 	Success      bool      `gorm:"not null"`
@@ -387,11 +388,12 @@ func DeleteAllSecrets(repoID uint) error {
 }
 
 // LogAuditEvent logs an audit event
-func LogAuditEvent(operation string, repoID *uint, secretID *uint, serviceName, requestID string, success bool, errorMessage string) error {
+func LogAuditEvent(operation string, repoID *uint, secretID *uint, serviceName, requestID, username string, success bool, errorMessage string) error {
 	auditLog := &AuditLog{
 		Operation:    operation,
 		RepoID:       repoID,
 		SecretID:     secretID,
+		Username:     username,
 		ServiceName:  serviceName,
 		RequestID:    requestID,
 		Success:      success,

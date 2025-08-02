@@ -48,6 +48,7 @@ interface UploadSecretRequest {
   repoName: string;
   tag: string;
   envFileContent: Buffer;
+  userLogin: string;
 }
 
 interface UploadSecretResponse {
@@ -61,6 +62,7 @@ interface ListSecretVersionsRequest {
   accessToken: string;
   ownerLogin: string;
   repoName: string;
+  userLogin: string;
 }
 
 interface ListSecretVersionsResponse {
@@ -73,6 +75,7 @@ interface DownloadSecretRequest {
   ownerLogin: string;
   repoName: string;
   version: number;
+  userLogin: string;
 }
 
 interface DownloadSecretByTagRequest {
@@ -80,6 +83,7 @@ interface DownloadSecretByTagRequest {
   ownerLogin: string;
   repoName: string;
   tag: string;
+  userLogin: string;
 }
 
 interface DownloadSecretResponse {
@@ -99,6 +103,7 @@ interface DeleteSecretRequest {
   ownerLogin: string;
   repoName: string;
   version: number;
+  userLogin: string;
 }
 
 interface DeleteSecretResponse {

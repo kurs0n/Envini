@@ -100,7 +100,7 @@ func (s *Server) UploadSecret(ctx context.Context, req *secretsservice.UploadSec
 	// 1. Check if user has access to the repository
 	listResp, err := s.ListRepos(ctx, &secretsservice.ListReposRequest{AccessToken: req.AccessToken})
 	if err != nil || listResp.Error != "" {
-		LogAuditEvent("UPLOAD", nil, nil, serviceName, requestID, false, "Failed to list repos: "+listResp.Error)
+		LogAuditEvent("UPLOAD", nil, nil, serviceName, requestID, req.UserLogin, false, "Failed to list repos: "+listResp.Error)
 		return &secretsservice.UploadSecretResponse{
 			Success: false,
 			Error:   "Failed to list repos: " + listResp.Error,
@@ -108,7 +108,7 @@ func (s *Server) UploadSecret(ctx context.Context, req *secretsservice.UploadSec
 	}
 
 	if !HasRepoAccess(listResp.Repos, req.OwnerLogin, req.RepoName) {
-		LogAuditEvent("UPLOAD", nil, nil, serviceName, requestID, false, "No access to repository")
+		LogAuditEvent("UPLOAD", nil, nil, serviceName, requestID, req.UserLogin, false, "No access to repository")
 		return &secretsservice.UploadSecretResponse{
 			Success: false,
 			Error:   "No access to repository",
@@ -125,7 +125,7 @@ func (s *Server) UploadSecret(ctx context.Context, req *secretsservice.UploadSec
 	}
 
 	if targetRepo == nil {
-		LogAuditEvent("UPLOAD", nil, nil, serviceName, requestID, false, "Repository not found")
+		LogAuditEvent("UPLOAD", nil, nil, serviceName, requestID, req.UserLogin, false, "Repository not found")
 		return &secretsservice.UploadSecretResponse{
 			Success: false,
 			Error:   "Repository not found",
@@ -135,7 +135,7 @@ func (s *Server) UploadSecret(ctx context.Context, req *secretsservice.UploadSec
 	// 3. Parse .env file content
 	envData, err := s.parseEnvFile(req.EnvFileContent)
 	if err != nil {
-		LogAuditEvent("UPLOAD", nil, nil, serviceName, requestID, false, "Failed to parse .env file: "+err.Error())
+		LogAuditEvent("UPLOAD", nil, nil, serviceName, requestID, req.UserLogin, false, "Failed to parse .env file: "+err.Error())
 		return &secretsservice.UploadSecretResponse{
 			Success: false,
 			Error:   "Failed to parse .env file: " + err.Error(),
@@ -145,7 +145,7 @@ func (s *Server) UploadSecret(ctx context.Context, req *secretsservice.UploadSec
 	// 4. Convert env data to JSON
 	envDataJSON, err := json.Marshal(envData)
 	if err != nil {
-		LogAuditEvent("UPLOAD", nil, nil, serviceName, requestID, false, "Failed to marshal env data: "+err.Error())
+		LogAuditEvent("UPLOAD", nil, nil, serviceName, requestID, req.UserLogin, false, "Failed to marshal env data: "+err.Error())
 		return &secretsservice.UploadSecretResponse{
 			Success: false,
 			Error:   "Failed to marshal env data: " + err.Error(),
@@ -166,7 +166,7 @@ func (s *Server) UploadSecret(ctx context.Context, req *secretsservice.UploadSec
 		targetRepo.Private,
 	)
 	if err != nil {
-		LogAuditEvent("UPLOAD", nil, nil, serviceName, requestID, false, "Failed to get/create repository: "+err.Error())
+		LogAuditEvent("UPLOAD", nil, nil, serviceName, requestID, req.UserLogin, false, "Failed to get/create repository: "+err.Error())
 		return &secretsservice.UploadSecretResponse{
 			Success: false,
 			Error:   "Failed to get/create repository: " + err.Error(),
@@ -176,7 +176,7 @@ func (s *Server) UploadSecret(ctx context.Context, req *secretsservice.UploadSec
 	// 7. Get next version number
 	version, err := GetNextVersion(repo.ID)
 	if err != nil {
-		LogAuditEvent("UPLOAD", &repo.ID, nil, serviceName, requestID, false, "Failed to get next version: "+err.Error())
+		LogAuditEvent("UPLOAD", &repo.ID, nil, serviceName, requestID, req.UserLogin, false, "Failed to get next version: "+err.Error())
 		return &secretsservice.UploadSecretResponse{
 			Success: false,
 			Error:   "Failed to get next version: " + err.Error(),
@@ -186,7 +186,7 @@ func (s *Server) UploadSecret(ctx context.Context, req *secretsservice.UploadSec
 	// 8. Create secret in database (with encryption enabled)
 	secret, err := CreateSecret(repo.ID, version, req.Tag, string(envDataJSON), checksum, serviceName, true)
 	if err != nil {
-		LogAuditEvent("UPLOAD", &repo.ID, nil, serviceName, requestID, false, "Failed to create secret: "+err.Error())
+		LogAuditEvent("UPLOAD", &repo.ID, nil, serviceName, requestID, req.UserLogin, false, "Failed to create secret: "+err.Error())
 		return &secretsservice.UploadSecretResponse{
 			Success: false,
 			Error:   "Failed to create secret: " + err.Error(),
@@ -194,7 +194,7 @@ func (s *Server) UploadSecret(ctx context.Context, req *secretsservice.UploadSec
 	}
 
 	// 9. Log successful operation
-	LogAuditEvent("UPLOAD", &repo.ID, &secret.ID, serviceName, requestID, true, "")
+	LogAuditEvent("UPLOAD", &repo.ID, &secret.ID, serviceName, requestID, req.UserLogin, true, "")
 
 	return &secretsservice.UploadSecretResponse{
 		Success:  true,
@@ -209,14 +209,14 @@ func (s *Server) ListSecretVersions(ctx context.Context, req *secretsservice.Lis
 	// 1. Check if user has access to the repository
 	listResp, err := s.ListRepos(ctx, &secretsservice.ListReposRequest{AccessToken: req.AccessToken})
 	if err != nil || listResp.Error != "" {
-		LogAuditEvent("LIST_VERSIONS", nil, nil, serviceName, requestID, false, "Failed to list repos: "+listResp.Error)
+		LogAuditEvent("LIST_VERSIONS", nil, nil, serviceName, requestID, req.UserLogin, false, "Failed to list repos: "+listResp.Error)
 		return &secretsservice.ListSecretVersionsResponse{
 			Error: "Failed to list repos: " + listResp.Error,
 		}, nil
 	}
 
 	if !HasRepoAccess(listResp.Repos, req.OwnerLogin, req.RepoName) {
-		LogAuditEvent("LIST_VERSIONS", nil, nil, serviceName, requestID, false, "No access to repository")
+		LogAuditEvent("LIST_VERSIONS", nil, nil, serviceName, requestID, req.UserLogin, false, "No access to repository")
 		return &secretsservice.ListSecretVersionsResponse{
 			Error: "No access to repository",
 		}, nil
@@ -226,7 +226,7 @@ func (s *Server) ListSecretVersions(ctx context.Context, req *secretsservice.Lis
 	var repo Repository
 	result := DB.Where("owner_login = ? AND repo_name = ?", req.OwnerLogin, req.RepoName).First(&repo)
 	if result.Error != nil {
-		LogAuditEvent("LIST_VERSIONS", nil, nil, serviceName, requestID, false, "Repository not found in database")
+		LogAuditEvent("LIST_VERSIONS", nil, nil, serviceName, requestID, req.UserLogin, false, "Repository not found in database")
 		return &secretsservice.ListSecretVersionsResponse{
 			Error: "Repository not found in database",
 		}, nil
@@ -235,7 +235,7 @@ func (s *Server) ListSecretVersions(ctx context.Context, req *secretsservice.Lis
 	// 3. List secret versions
 	secrets, err := ListSecretVersions(repo.ID)
 	if err != nil {
-		LogAuditEvent("LIST_VERSIONS", &repo.ID, nil, serviceName, requestID, false, "Failed to list secret versions: "+err.Error())
+		LogAuditEvent("LIST_VERSIONS", &repo.ID, nil, serviceName, requestID, req.UserLogin, false, "Failed to list secret versions: "+err.Error())
 		return &secretsservice.ListSecretVersionsResponse{
 			Error: "Failed to list secret versions: " + err.Error(),
 		}, nil
@@ -254,7 +254,7 @@ func (s *Server) ListSecretVersions(ctx context.Context, req *secretsservice.Lis
 	}
 
 	// 5. Log successful operation
-	LogAuditEvent("LIST_VERSIONS", &repo.ID, nil, serviceName, requestID, true, "")
+	LogAuditEvent("LIST_VERSIONS", &repo.ID, nil, serviceName, requestID, req.UserLogin, true, "")
 
 	return &secretsservice.ListSecretVersionsResponse{
 		Versions: versions,
@@ -267,7 +267,7 @@ func (s *Server) DownloadSecret(ctx context.Context, req *secretsservice.Downloa
 	// 1. Check if user has access to the repository
 	listResp, err := s.ListRepos(ctx, &secretsservice.ListReposRequest{AccessToken: req.AccessToken})
 	if err != nil || listResp.Error != "" {
-		LogAuditEvent("DOWNLOAD", nil, nil, serviceName, requestID, false, "Failed to list repos: "+listResp.Error)
+		LogAuditEvent("DOWNLOAD", nil, nil, serviceName, requestID, req.UserLogin, false, "Failed to list repos: "+listResp.Error)
 		return &secretsservice.DownloadSecretResponse{
 			Success: false,
 			Error:   "Failed to list repos: " + listResp.Error,
@@ -275,7 +275,7 @@ func (s *Server) DownloadSecret(ctx context.Context, req *secretsservice.Downloa
 	}
 
 	if !HasRepoAccess(listResp.Repos, req.OwnerLogin, req.RepoName) {
-		LogAuditEvent("DOWNLOAD", nil, nil, serviceName, requestID, false, "No access to repository")
+		LogAuditEvent("DOWNLOAD", nil, nil, serviceName, requestID, req.UserLogin, false, "No access to repository")
 		return &secretsservice.DownloadSecretResponse{
 			Success: false,
 			Error:   "No access to repository",
@@ -286,7 +286,7 @@ func (s *Server) DownloadSecret(ctx context.Context, req *secretsservice.Downloa
 	var repo Repository
 	result := DB.Where("owner_login = ? AND repo_name = ?", req.OwnerLogin, req.RepoName).First(&repo)
 	if result.Error != nil {
-		LogAuditEvent("DOWNLOAD", nil, nil, serviceName, requestID, false, "Repository not found in database")
+		LogAuditEvent("DOWNLOAD", nil, nil, serviceName, requestID, req.UserLogin, false, "Repository not found in database")
 		return &secretsservice.DownloadSecretResponse{
 			Success: false,
 			Error:   "Repository not found in database",
@@ -305,7 +305,7 @@ func (s *Server) DownloadSecret(ctx context.Context, req *secretsservice.Downloa
 	}
 
 	if err2 != nil {
-		LogAuditEvent("DOWNLOAD", &repo.ID, nil, serviceName, requestID, false, "Failed to get secret: "+err2.Error())
+		LogAuditEvent("DOWNLOAD", &repo.ID, nil, serviceName, requestID, req.UserLogin, false, "Failed to get secret: "+err2.Error())
 		return &secretsservice.DownloadSecretResponse{
 			Success: false,
 			Error:   "Failed to get secret: " + err2.Error(),
@@ -315,7 +315,7 @@ func (s *Server) DownloadSecret(ctx context.Context, req *secretsservice.Downloa
 	// 4. Decrypt secret data if encrypted
 	decryptedData, err := DecryptSecretData(secret)
 	if err != nil {
-		LogAuditEvent("DOWNLOAD", &repo.ID, &secret.ID, serviceName, requestID, false, "Failed to decrypt secret: "+err.Error())
+		LogAuditEvent("DOWNLOAD", &repo.ID, &secret.ID, serviceName, requestID, req.UserLogin, false, "Failed to decrypt secret: "+err.Error())
 		return &secretsservice.DownloadSecretResponse{
 			Success: false,
 			Error:   "Failed to decrypt secret: " + err.Error(),
@@ -325,7 +325,7 @@ func (s *Server) DownloadSecret(ctx context.Context, req *secretsservice.Downloa
 	// 5. Convert JSON back to .env format
 	var envData map[string]string
 	if err := json.Unmarshal([]byte(decryptedData), &envData); err != nil {
-		LogAuditEvent("DOWNLOAD", &repo.ID, &secret.ID, serviceName, requestID, false, "Failed to unmarshal env data: "+err.Error())
+		LogAuditEvent("DOWNLOAD", &repo.ID, &secret.ID, serviceName, requestID, req.UserLogin, false, "Failed to unmarshal env data: "+err.Error())
 		return &secretsservice.DownloadSecretResponse{
 			Success: false,
 			Error:   "Failed to unmarshal env data: " + err.Error(),
@@ -336,7 +336,7 @@ func (s *Server) DownloadSecret(ctx context.Context, req *secretsservice.Downloa
 	envContent := s.convertToEnvFormat(envData)
 
 	// 7. Log successful operation
-	LogAuditEvent("DOWNLOAD", &repo.ID, &secret.ID, serviceName, requestID, true, "")
+	LogAuditEvent("DOWNLOAD", &repo.ID, &secret.ID, serviceName, requestID, req.UserLogin, true, "")
 
 	return &secretsservice.DownloadSecretResponse{
 		Success:        true,
@@ -356,7 +356,7 @@ func (s *Server) DownloadSecretByTag(ctx context.Context, req *secretsservice.Do
 	// 1. Check if user has access to the repository
 	listResp, err := s.ListRepos(ctx, &secretsservice.ListReposRequest{AccessToken: req.AccessToken})
 	if err != nil || listResp.Error != "" {
-		LogAuditEvent("DOWNLOAD_BY_TAG", nil, nil, serviceName, requestID, false, "Failed to list repos: "+listResp.Error)
+		LogAuditEvent("DOWNLOAD_BY_TAG", nil, nil, serviceName, requestID, req.UserLogin, false, "Failed to list repos: "+listResp.Error)
 		return &secretsservice.DownloadSecretResponse{
 			Success: false,
 			Error:   "Failed to list repos: " + listResp.Error,
@@ -364,7 +364,7 @@ func (s *Server) DownloadSecretByTag(ctx context.Context, req *secretsservice.Do
 	}
 
 	if !HasRepoAccess(listResp.Repos, req.OwnerLogin, req.RepoName) {
-		LogAuditEvent("DOWNLOAD_BY_TAG", nil, nil, serviceName, requestID, false, "No access to repository")
+		LogAuditEvent("DOWNLOAD_BY_TAG", nil, nil, serviceName, requestID, req.UserLogin, false, "No access to repository")
 		return &secretsservice.DownloadSecretResponse{
 			Success: false,
 			Error:   "No access to repository",
@@ -375,7 +375,7 @@ func (s *Server) DownloadSecretByTag(ctx context.Context, req *secretsservice.Do
 	var repo Repository
 	result := DB.Where("owner_login = ? AND repo_name = ?", req.OwnerLogin, req.RepoName).First(&repo)
 	if result.Error != nil {
-		LogAuditEvent("DOWNLOAD_BY_TAG", nil, nil, serviceName, requestID, false, "Repository not found in database")
+		LogAuditEvent("DOWNLOAD_BY_TAG", nil, nil, serviceName, requestID, req.UserLogin, false, "Repository not found in database")
 		return &secretsservice.DownloadSecretResponse{
 			Success: false,
 			Error:   "Repository not found in database",
@@ -385,7 +385,7 @@ func (s *Server) DownloadSecretByTag(ctx context.Context, req *secretsservice.Do
 	// 3. Get secret by tag
 	secret, err := GetSecretByTag(repo.ID, req.Tag)
 	if err != nil {
-		LogAuditEvent("DOWNLOAD_BY_TAG", &repo.ID, nil, serviceName, requestID, false, "Failed to get secret by tag: "+err.Error())
+		LogAuditEvent("DOWNLOAD_BY_TAG", &repo.ID, nil, serviceName, requestID, req.UserLogin, false, "Failed to get secret by tag: "+err.Error())
 		return &secretsservice.DownloadSecretResponse{
 			Success: false,
 			Error:   "Failed to get secret by tag: " + err.Error(),
@@ -395,7 +395,7 @@ func (s *Server) DownloadSecretByTag(ctx context.Context, req *secretsservice.Do
 	// 4. Decrypt secret data if encrypted
 	decryptedData, err := DecryptSecretData(secret)
 	if err != nil {
-		LogAuditEvent("DOWNLOAD_BY_TAG", &repo.ID, &secret.ID, serviceName, requestID, false, "Failed to decrypt secret: "+err.Error())
+		LogAuditEvent("DOWNLOAD_BY_TAG", &repo.ID, &secret.ID, serviceName, requestID, req.UserLogin, false, "Failed to decrypt secret: "+err.Error())
 		return &secretsservice.DownloadSecretResponse{
 			Success: false,
 			Error:   "Failed to decrypt secret: " + err.Error(),
@@ -405,7 +405,7 @@ func (s *Server) DownloadSecretByTag(ctx context.Context, req *secretsservice.Do
 	// 5. Convert JSON back to .env format
 	var envData map[string]string
 	if err := json.Unmarshal([]byte(decryptedData), &envData); err != nil {
-		LogAuditEvent("DOWNLOAD_BY_TAG", &repo.ID, &secret.ID, serviceName, requestID, false, "Failed to unmarshal env data: "+err.Error())
+		LogAuditEvent("DOWNLOAD_BY_TAG", &repo.ID, &secret.ID, serviceName, requestID, req.UserLogin, false, "Failed to unmarshal env data: "+err.Error())
 		return &secretsservice.DownloadSecretResponse{
 			Success: false,
 			Error:   "Failed to unmarshal env data: " + err.Error(),
@@ -416,7 +416,7 @@ func (s *Server) DownloadSecretByTag(ctx context.Context, req *secretsservice.Do
 	envContent := s.convertToEnvFormat(envData)
 
 	// 7. Log successful download
-	LogAuditEvent("DOWNLOAD_BY_TAG", &repo.ID, &secret.ID, serviceName, requestID, true, "")
+	LogAuditEvent("DOWNLOAD_BY_TAG", &repo.ID, &secret.ID, serviceName, requestID, req.UserLogin, true, "")
 
 	return &secretsservice.DownloadSecretResponse{
 		Success:        true,
@@ -436,7 +436,7 @@ func (s *Server) DeleteSecret(ctx context.Context, req *secretsservice.DeleteSec
 	// 1. Check if user has access to the repository
 	listResp, err := s.ListRepos(ctx, &secretsservice.ListReposRequest{AccessToken: req.AccessToken})
 	if err != nil || listResp.Error != "" {
-		LogAuditEvent("DELETE", nil, nil, serviceName, requestID, false, "Failed to list repos: "+listResp.Error)
+		LogAuditEvent("DELETE", nil, nil, serviceName, requestID, req.UserLogin, false, "Failed to list repos: "+listResp.Error)
 		return &secretsservice.DeleteSecretResponse{
 			Success: false,
 			Error:   "Failed to list repos: " + listResp.Error,
@@ -444,7 +444,7 @@ func (s *Server) DeleteSecret(ctx context.Context, req *secretsservice.DeleteSec
 	}
 
 	if !HasRepoAccess(listResp.Repos, req.OwnerLogin, req.RepoName) {
-		LogAuditEvent("DELETE", nil, nil, serviceName, requestID, false, "No access to repository")
+		LogAuditEvent("DELETE", nil, nil, serviceName, requestID, req.UserLogin, false, "No access to repository")
 		return &secretsservice.DeleteSecretResponse{
 			Success: false,
 			Error:   "No access to repository",
@@ -455,7 +455,7 @@ func (s *Server) DeleteSecret(ctx context.Context, req *secretsservice.DeleteSec
 	var repo Repository
 	result := DB.Where("owner_login = ? AND repo_name = ?", req.OwnerLogin, req.RepoName).First(&repo)
 	if result.Error != nil {
-		LogAuditEvent("DELETE", nil, nil, serviceName, requestID, false, "Repository not found in database")
+		LogAuditEvent("DELETE", nil, nil, serviceName, requestID, req.UserLogin, false, "Repository not found in database")
 		return &secretsservice.DeleteSecretResponse{
 			Success: false,
 			Error:   "Repository not found in database",
@@ -470,7 +470,7 @@ func (s *Server) DeleteSecret(ctx context.Context, req *secretsservice.DeleteSec
 		// Delete all versions
 		err2 = DeleteAllSecrets(repo.ID)
 		if err2 != nil {
-			LogAuditEvent("DELETE", &repo.ID, nil, serviceName, requestID, false, "Failed to delete all secrets: "+err2.Error())
+			LogAuditEvent("DELETE", &repo.ID, nil, serviceName, requestID, req.UserLogin, false, "Failed to delete all secrets: "+err2.Error())
 			return &secretsservice.DeleteSecretResponse{
 				Success: false,
 				Error:   "Failed to delete all secrets: " + err2.Error(),
@@ -481,7 +481,7 @@ func (s *Server) DeleteSecret(ctx context.Context, req *secretsservice.DeleteSec
 		// Delete specific version
 		err2 = DeleteSecret(repo.ID, int(req.Version))
 		if err2 != nil {
-			LogAuditEvent("DELETE", &repo.ID, nil, serviceName, requestID, false, "Failed to delete secret: "+err2.Error())
+			LogAuditEvent("DELETE", &repo.ID, nil, serviceName, requestID, req.UserLogin, false, "Failed to delete secret: "+err2.Error())
 			return &secretsservice.DeleteSecretResponse{
 				Success: false,
 				Error:   "Failed to delete secret: " + err2.Error(),
@@ -491,7 +491,7 @@ func (s *Server) DeleteSecret(ctx context.Context, req *secretsservice.DeleteSec
 	}
 
 	// 4. Log successful operation
-	LogAuditEvent("DELETE", &repo.ID, nil, serviceName, requestID, true, "")
+	LogAuditEvent("DELETE", &repo.ID, nil, serviceName, requestID, req.UserLogin, true, "")
 
 	return &secretsservice.DeleteSecretResponse{
 		Success:         true,
@@ -505,7 +505,7 @@ func (s *Server) ListAllRepositoriesWithVersions(ctx context.Context, req *secre
 	// 1. Check if user has access to any repositories
 	listResp, err := s.ListRepos(ctx, &secretsservice.ListReposRequest{AccessToken: req.AccessToken})
 	if err != nil || listResp.Error != "" {
-		LogAuditEvent("LIST_ALL_REPOS", nil, nil, serviceName, requestID, false, "Failed to list repos: "+listResp.Error)
+		LogAuditEvent("LIST_ALL_REPOS", nil, nil, serviceName, requestID, req.UserLogin, false, "Failed to list repos: "+listResp.Error)
 		return &secretsservice.ListAllRepositoriesWithVersionsResponse{
 			Error: "Failed to list repos: " + listResp.Error,
 		}, nil
@@ -514,7 +514,7 @@ func (s *Server) ListAllRepositoriesWithVersions(ctx context.Context, req *secre
 	// 2. Get all repositories with versions from database
 	reposWithVersions, err := ListAllRepositoriesWithVersions()
 	if err != nil {
-		LogAuditEvent("LIST_ALL_REPOS", nil, nil, serviceName, requestID, false, "Failed to get repositories with versions: "+err.Error())
+		LogAuditEvent("LIST_ALL_REPOS", nil, nil, serviceName, requestID, req.UserLogin, false, "Failed to get repositories with versions: "+err.Error())
 		return &secretsservice.ListAllRepositoriesWithVersionsResponse{
 			Error: "Failed to get repositories with versions: " + err.Error(),
 		}, nil
@@ -555,7 +555,7 @@ func (s *Server) ListAllRepositoriesWithVersions(ctx context.Context, req *secre
 	}
 
 	// 4. Log successful operation
-	LogAuditEvent("LIST_ALL_REPOS", nil, nil, serviceName, requestID, true, "")
+	LogAuditEvent("LIST_ALL_REPOS", nil, nil, serviceName, requestID, req.UserLogin, true, "")
 
 	return &secretsservice.ListAllRepositoriesWithVersionsResponse{
 		Repositories: accessibleRepos,
