@@ -36,11 +36,18 @@ interface LogoutResponse {
   error?: string;
 }
 
+interface GetUserLoginResponse {
+  userLogin?: string;
+  error?: string;
+  errorDescription?: string;
+}
+
 interface AuthService {
   startDeviceFlow(request: { clientId?: string }): any;
   pollForToken(request: { deviceCode: string }): any;
   getAuthToken(request: { jwt: string }): any;
   validateSession(request: { jwt: string }): any;
+  getUserLogin(request: { jwt: string }): any;
   logout(request: { jwt: string }): any;
 }
 
@@ -80,5 +87,9 @@ export class AuthClientService implements OnModuleInit {
 
   async logout(jwt: string): Promise<LogoutResponse> {
     return await firstValueFrom(this.authService.logout({ jwt }));
+  }
+
+  async getUserLogin(jwt: string): Promise<GetUserLoginResponse> {
+    return await firstValueFrom(this.authService.getUserLogin({ jwt }));
   }
 } 

@@ -20,6 +20,9 @@ service AuthService {
   // Validate session
   rpc ValidateSession (ValidateSessionRequest) returns (ValidateSessionResponse);
 
+  // Get user login for a session
+  rpc GetUserLogin (GetUserLoginRequest) returns (GetUserLoginResponse);
+
   // Logout (clear session)
   rpc Logout (LogoutRequest) returns (LogoutResponse);
 
@@ -91,5 +94,15 @@ message LogoutRequest {
 message LogoutResponse {
   bool success = 1;
   string error = 2;
+}
+
+message GetUserLoginRequest {
+  string jwt = 1;
+}
+
+message GetUserLoginResponse {
+  string user_login = 1;
+  string error = 2;
+  string error_description = 3;
 }
 

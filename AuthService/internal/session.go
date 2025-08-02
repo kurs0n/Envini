@@ -13,6 +13,7 @@ import (
 type Session struct {
 	SessionID             uuid.UUID `gorm:"type:uuid;primaryKey"`
 	GithubUserID          int64     `gorm:"uniqueIndex"`
+	UserLogin             string    `gorm:"size:255;not null"` // GitHub user login
 	AccessToken           string
 	RefreshToken          string
 	ExpiresAt             time.Time

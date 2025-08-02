@@ -114,6 +114,7 @@ interface SecretsService {
   downloadSecret(request: DownloadSecretRequest): any;
   downloadSecretByTag(request: DownloadSecretByTagRequest): any;
   deleteSecret(request: DeleteSecretRequest): any;
+  listAllRepositoriesWithVersions(request: { accessToken: string }): any;
 }
 
 @Injectable()
@@ -170,5 +171,19 @@ export class SecretOperationClientService implements OnModuleInit {
   async deleteSecret(request: DeleteSecretRequest): Promise<DeleteSecretResponse> {
     const response = await firstValueFrom(this.secretsService.deleteSecret(request));
     return response as DeleteSecretResponse;
+  }
+
+  async listAllRepositoriesWithVersions(accessToken: string): Promise<any> {
+    const response = await firstValueFrom(this.secretsService.listAllRepositoriesWithVersions({ accessToken })) as any;
+    
+    // Convert Long objects to regular numbers
+    if (response.repositories) {
+      response.repositories = response.repositories.map((repo: any) => ({
+        ...repo,
+        repoId: typeof repo.repoId === 'object' && repo.repoId !== null ? repo.repoId.low : repo.repoId,
+      }));
+    }
+    
+    return response;
   }
 } 

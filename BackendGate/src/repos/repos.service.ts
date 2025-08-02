@@ -19,6 +19,13 @@ export interface ListReposResult {
   errorDescription?: string;
 }
 
+export interface ListReposWithVersionsResult {
+  repositories?: any[];
+  error?: string;
+  errorDescription?: string;
+  message?: string;
+}
+
 @Injectable()
 export class ReposService {
   constructor(
@@ -60,5 +67,47 @@ export class ReposService {
     } catch (error) {
       throw new Error(`Failed to list repositories: ${error.message}`);
     }
+  }
+
+  async listReposWithVersions(jwt: string): Promise<ListReposWithVersionsResult> {
+    try {
+      const authTokenResponse = await this.authService.getAuthToken(jwt);
+      
+      if (authTokenResponse.error) {
+        return {
+          error: authTokenResponse.error,
+          errorDescription: authTokenResponse.errorDescription,
+        };
+      }
+
+      if (!authTokenResponse.accessToken) {
+        return {
+          error: 'no_access_token',
+          errorDescription: 'No access token received from auth service',
+        };
+      }
+
+      const reposResponse = await this.secretOperationClientService.listAllRepositoriesWithVersions(
+        authTokenResponse.accessToken
+      );
+
+      if (reposResponse.error) {
+        return {
+          error: reposResponse.error,
+        };
+      }
+
+      return {
+        repositories: reposResponse.repositories,
+      };
+    } catch (error) {
+      throw new Error(`Failed to list repositories with versions: ${error.message}`);
+    }
+  }
+
+  private generateRequestId(): string {
+    const timestamp = Date.now();
+    const randomBytes = Math.random().toString(16).substring(2, 10);
+    return `${timestamp}-${randomBytes}`;
   }
 } 

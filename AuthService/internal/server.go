@@ -99,30 +99,33 @@ func generateJWT(sessionID uuid.UUID) (string, error) {
 	return token.SignedString(jwtSecret)
 }
 
-func getGithubUserID(accessToken string) (int64, error) {
+type GithubUserInfo struct {
+	ID    int64  `json:"id"`
+	Login string `json:"login"`
+}
+
+func getGithubUserInfo(accessToken string) (*GithubUserInfo, error) {
 	client := &http.Client{}
 	r, err := http.NewRequest(http.MethodGet, "https://api.github.com/user", nil)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	r.Header.Add("Authorization", "Bearer "+accessToken)
 	r.Header.Add("Accept", "application/vnd.github+json")
 	r.Header.Add("X-GitHub-Api-Version", "2022-11-28")
 	resp, err := client.Do(r)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return 0, fmt.Errorf("GitHub API returned status %d", resp.StatusCode)
+		return nil, fmt.Errorf("GitHub API returned status %d", resp.StatusCode)
 	}
-	var user struct {
-		ID int64 `json:"id"`
-	}
+	var user GithubUserInfo
 	if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
-		return 0, err
+		return nil, err
 	}
-	return user.ID, nil
+	return &user, nil
 }
 
 func (s *Server) PollForToken(ctx context.Context, req *authservice.PollForTokenRequest) (*authservice.PollForTokenResponse, error) {
@@ -164,8 +167,8 @@ func (s *Server) PollForToken(ctx context.Context, req *authservice.PollForToken
 	_ = json.Unmarshal(body, &tokenError)
 	if tokenError.Error == "" {
 		_ = json.Unmarshal(body, &tokenSuccess)
-		// Fetch GitHub user ID using the access token
-		githubUserID, err := getGithubUserID(tokenSuccess.AccessToken)
+		// Fetch GitHub user info using the access token
+		githubUserInfo, err := getGithubUserInfo(tokenSuccess.AccessToken)
 		if err != nil {
 			return &authservice.PollForTokenResponse{
 				Error:            "github_user_fetch_failed",
@@ -175,7 +178,8 @@ func (s *Server) PollForToken(ctx context.Context, req *authservice.PollForToken
 		sessionID := uuid.New()
 		sess := &Session{
 			SessionID:             sessionID,
-			GithubUserID:          githubUserID,
+			GithubUserID:          githubUserInfo.ID,
+			UserLogin:             githubUserInfo.Login,
 			AccessToken:           tokenSuccess.AccessToken,
 			RefreshToken:          tokenSuccess.RefreshToken,
 			ExpiresAt:             time.Now().Add(time.Duration(tokenSuccess.ExpiresIn) * time.Second),
@@ -334,6 +338,53 @@ func (s *Server) ValidateSession(ctx context.Context, req *authservice.ValidateS
 		return &authservice.ValidateSessionResponse{Valid: false, Error: "Session not found or expired"}, nil
 	}
 	return &authservice.ValidateSessionResponse{Valid: true}, nil
+}
+
+func (s *Server) GetUserLogin(ctx context.Context, req *authservice.GetUserLoginRequest) (*authservice.GetUserLoginResponse, error) {
+	token, err := jwt.Parse(req.Jwt, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method")
+		}
+		return jwtSecret, nil
+	})
+	if err != nil || !token.Valid {
+		return &authservice.GetUserLoginResponse{
+			Error:            "invalid_jwt",
+			ErrorDescription: "JWT is invalid or expired",
+		}, nil
+	}
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return &authservice.GetUserLoginResponse{
+			Error:            "invalid_jwt_claims",
+			ErrorDescription: "JWT claims are not in the expected format",
+		}, nil
+	}
+	sessionIDStr, ok := claims["session_id"].(string)
+	if !ok {
+		return &authservice.GetUserLoginResponse{
+			Error:            "session_id_missing_in_jwt",
+			ErrorDescription: "Session ID is missing in JWT claims",
+		}, nil
+	}
+	sid, err := uuid.Parse(sessionIDStr)
+	if err != nil {
+		return &authservice.GetUserLoginResponse{
+			Error:            "invalid_session_id",
+			ErrorDescription: "Session ID in JWT is not a valid UUID",
+		}, nil
+	}
+	sess, err := s.Sessions.GetBySessionID(ctx, sid)
+	if err != nil || sess == nil {
+		return &authservice.GetUserLoginResponse{
+			Error:            "session_not_found",
+			ErrorDescription: "Session not found or expired",
+		}, nil
+	}
+
+	return &authservice.GetUserLoginResponse{
+		UserLogin: sess.UserLogin,
+	}, nil
 }
 
 func (s *Server) GetAuthToken(ctx context.Context, req *authservice.GetAuthTokenRequest) (*authservice.GetAuthTokenResponse, error) {

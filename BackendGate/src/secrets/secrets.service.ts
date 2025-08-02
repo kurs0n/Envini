@@ -48,6 +48,12 @@ export class SecretsService {
     private readonly authService: AuthService,
   ) {}
 
+  private generateRequestId(): string {
+    const timestamp = Date.now();
+    const randomBytes = Math.random().toString(16).substring(2, 10);
+    return `${timestamp}-${randomBytes}`;
+  }
+
   async uploadSecret(
     jwt: string,
     ownerLogin: string,
@@ -134,14 +140,14 @@ export class SecretsService {
         };
       } else {
         return {
-          error: 'list_failed',
+          error: 'list_versions_failed',
           errorDescription: response.error || 'Failed to list secret versions',
         };
       }
     } catch (error) {
       return {
-        error: 'list_error',
-        errorDescription: error.message || 'Internal server error during listing',
+        error: 'list_versions_error',
+        errorDescription: error.message || 'Internal server error during list versions',
       };
     }
   }
@@ -243,13 +249,13 @@ export class SecretsService {
       } else {
         return {
           error: 'download_failed',
-          errorDescription: response.error || 'Failed to download secret by tag',
+          errorDescription: response.error || 'Failed to download secret',
         };
       }
     } catch (error) {
       return {
         error: 'download_error',
-        errorDescription: error.message || 'Internal server error during download by tag',
+        errorDescription: error.message || 'Internal server error during download',
       };
     }
   }
@@ -298,7 +304,7 @@ export class SecretsService {
     } catch (error) {
       return {
         error: 'delete_error',
-        errorDescription: error.message || 'Internal server error during deletion',
+        errorDescription: error.message || 'Internal server error during delete',
       };
     }
   }

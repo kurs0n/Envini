@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"sort"
 	"time"
 
 	"gorm.io/driver/postgres"
@@ -30,9 +31,6 @@ type Repository struct {
 	CreatedAt   time.Time `gorm:"autoCreateTime"`
 	UpdatedAt   time.Time `gorm:"autoUpdateTime"`
 	Secrets     []Secret  `gorm:"foreignKey:RepoID;constraint:OnDelete:CASCADE"`
-
-	// Composite unique constraint
-	UniqueConstraint string `gorm:"uniqueIndex:idx_owner_repo;size:1"`
 }
 
 func (Repository) TableName() string {
@@ -41,8 +39,8 @@ func (Repository) TableName() string {
 
 type Secret struct {
 	ID           uint      `gorm:"primaryKey;autoIncrement"`
-	RepoID       uint      `gorm:"not null"`
-	Version      int       `gorm:"not null"`
+	RepoID       uint      `gorm:"not null;uniqueIndex:idx_repo_version,priority:1"`
+	Version      int       `gorm:"not null;uniqueIndex:idx_repo_version,priority:2"`
 	Tag          string    `gorm:"size:255"`
 	EnvData      string    `gorm:"type:text;not null"` // Changed from JSONB to TEXT for encrypted data
 	Checksum     string    `gorm:"size:64;not null"`
@@ -50,9 +48,6 @@ type Secret struct {
 	CreatedAt    time.Time `gorm:"autoCreateTime"`
 	IsEncrypted  bool      `gorm:"default:false"`
 	EncryptedKey string    `gorm:"size:255"` // Encrypted per-secret key
-
-	// Composite unique constraint
-	UniqueConstraint string `gorm:"uniqueIndex:idx_repo_version;size:1"`
 }
 
 func (Secret) TableName() string {
@@ -64,9 +59,8 @@ type AuditLog struct {
 	Operation    string    `gorm:"size:50;not null"`
 	RepoID       *uint     `gorm:"index"`
 	SecretID     *uint     `gorm:"index"`
-	UserLogin    string    `gorm:"size:255;not null"`
-	IPAddress    string    `gorm:"size:45"` // IPv6 max length
-	UserAgent    string    `gorm:"type:text"`
+	ServiceName  string    `gorm:"size:100;not null"`
+	RequestID    string    `gorm:"size:255"`
 	Success      bool      `gorm:"not null"`
 	ErrorMessage string    `gorm:"type:text"`
 	CreatedAt    time.Time `gorm:"autoCreateTime;index"`
@@ -240,11 +234,13 @@ func GetNextVersion(repoID uint) (int, error) {
 		return 0, fmt.Errorf("failed to get next version: %v", result.Error)
 	}
 
-	return maxVersion + 1, nil
+	nextVersion := maxVersion + 1
+	return nextVersion, nil
 }
 
 // CreateSecret creates a new secret version with optional encryption
 func CreateSecret(repoID uint, version int, tag, envData, checksum, uploadedBy string, encrypt bool) (*Secret, error) {
+
 	var encryptedKey string
 	var finalEnvData string
 
@@ -391,14 +387,13 @@ func DeleteAllSecrets(repoID uint) error {
 }
 
 // LogAuditEvent logs an audit event
-func LogAuditEvent(operation string, repoID *uint, secretID *uint, userLogin, ipAddress, userAgent string, success bool, errorMessage string) error {
+func LogAuditEvent(operation string, repoID *uint, secretID *uint, serviceName, requestID string, success bool, errorMessage string) error {
 	auditLog := &AuditLog{
 		Operation:    operation,
 		RepoID:       repoID,
 		SecretID:     secretID,
-		UserLogin:    userLogin,
-		IPAddress:    ipAddress,
-		UserAgent:    userAgent,
+		ServiceName:  serviceName,
+		RequestID:    requestID,
 		Success:      success,
 		ErrorMessage: errorMessage,
 	}
@@ -409,4 +404,74 @@ func LogAuditEvent(operation string, repoID *uint, secretID *uint, userLogin, ip
 	}
 
 	return nil
+}
+
+// ListAllRepositoriesWithVersions gets all repositories with their secret versions
+func ListAllRepositoriesWithVersions() ([]RepositoryWithVersions, error) {
+	var repos []Repository
+	result := DB.Preload("Secrets").Find(&repos)
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to get repositories: %v", result.Error)
+	}
+
+	var reposWithVersions []RepositoryWithVersions
+	for _, repo := range repos {
+		versions := make([]SecretVersion, len(repo.Secrets))
+		for i, secret := range repo.Secrets {
+			versions[i] = SecretVersion{
+				Version:     secret.Version,
+				Tag:         secret.Tag,
+				Checksum:    secret.Checksum,
+				UploadedBy:  secret.UploadedBy,
+				CreatedAt:   secret.CreatedAt,
+				IsEncrypted: secret.IsEncrypted,
+			}
+		}
+
+		// Sort versions by version number (descending)
+		sort.Slice(versions, func(i, j int) bool {
+			return versions[i].Version > versions[j].Version
+		})
+
+		reposWithVersions = append(reposWithVersions, RepositoryWithVersions{
+			ID:          repo.ID,
+			OwnerLogin:  repo.OwnerLogin,
+			RepoName:    repo.RepoName,
+			RepoID:      repo.RepoID,
+			FullName:    repo.FullName,
+			HTMLURL:     repo.HTMLURL,
+			Description: repo.Description,
+			IsPrivate:   repo.IsPrivate,
+			CreatedAt:   repo.CreatedAt,
+			UpdatedAt:   repo.UpdatedAt,
+			Versions:    versions,
+		})
+	}
+
+	return reposWithVersions, nil
+}
+
+// RepositoryWithVersions represents a repository with its secret versions
+type RepositoryWithVersions struct {
+	ID          uint            `json:"id"`
+	OwnerLogin  string          `json:"owner_login"`
+	RepoName    string          `json:"repo_name"`
+	RepoID      int64           `json:"repo_id"`
+	FullName    string          `json:"full_name"`
+	HTMLURL     string          `json:"html_url"`
+	Description string          `json:"description"`
+	IsPrivate   bool            `json:"is_private"`
+	CreatedAt   time.Time       `json:"created_at"`
+	UpdatedAt   time.Time       `json:"updated_at"`
+	Versions    []SecretVersion `json:"versions"`
+}
+
+// SecretVersion represents a secret version
+type SecretVersion struct {
+	Version     int       `json:"version"`
+	Tag         string    `json:"tag"`
+	Checksum    string    `json:"checksum"`
+	UploadedBy  string    `json:"uploaded_by"`
+	CreatedAt   time.Time `json:"created_at"`
+	IsEncrypted bool      `json:"is_encrypted"`
 }
