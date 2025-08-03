@@ -1,10 +1,10 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Navbar from './components/Navbar';
 import Login from './pages/Login';
 import RepositoryList from './pages/RepositoryList';
 import RepositoryDetails from './pages/RepositoryDetails';
+import GitHubRepositories from './pages/GitHubRepositories';
 
 function AppContent() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -36,6 +36,10 @@ function AppContent() {
         <Route 
           path="/repositories/:owner/:repo" 
           element={isAuthenticated ? <RepositoryDetails /> : <Navigate to="/login" />} 
+        />
+        <Route 
+          path="/github-repositories" 
+          element={isAuthenticated ? <GitHubRepositories /> : <Navigate to="/login" />} 
         />
         <Route 
           path="/" 

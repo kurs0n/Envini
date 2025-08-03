@@ -16,7 +16,7 @@ interface AuthContextType {
   login: () => Promise<void>;
   logout: () => Promise<void>;
   startGitHubAuth: () => Promise<{ deviceCode: string; userCode: string; verificationUri: string }>;
-  pollForToken: (deviceCode: string) => Promise<{ success: boolean; jwt?: string; user?: User }>;
+  pollForToken: (deviceCode: string) => Promise<{ success: boolean; jwt?: string; user?: User; sessionId?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -109,15 +109,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
           const response = await authAPI.pollForToken(deviceCode);
           console.log('Poll response:', response);
           
-          if (response.success && response.jwt && response.user) {
-            // Store the JWT and user info
+          if (response.jwt && response.sessionId) {
+            // Store the JWT
             localStorage.setItem('envini_jwt', response.jwt);
-            localStorage.setItem('envini_user', JSON.stringify(response.user));
             
-            setUser(response.user);
+            // Create a basic user object from the session info
+            const user = {
+              id: response.sessionId,
+              login: 'github_user', // We'll get the actual login later if needed
+              name: 'GitHub User',
+              avatar_url: '',
+              email: undefined
+            };
+            
+            localStorage.setItem('envini_user', JSON.stringify(user));
+            setUser(user);
             setIsAuthenticated(true);
             
-            return { success: true, jwt: response.jwt, user: response.user };
+            return { success: true, jwt: response.jwt, user: user, sessionId: response.sessionId };
           } else if (response.error === 'authorization_pending') {
             console.log('Authorization still pending, continuing to poll...');
             // Continue polling - this is expected

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Settings, LogOut, User, Folder } from 'lucide-react';
+import { Settings, LogOut, User, Folder, Github } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Navbar() {
@@ -23,7 +23,14 @@ export default function Navbar() {
                 className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-all duration-200 hover:scale-105"
               >
                 <Folder className="w-4 h-4" />
-                <span>Repositories</span>
+                <span>Secrets</span>
+              </Link>
+              <Link 
+                to="/github-repositories" 
+                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-all duration-200 hover:scale-105"
+              >
+                <Github className="w-4 h-4" />
+                <span>GitHub Repos</span>
               </Link>
             </div>
           )}

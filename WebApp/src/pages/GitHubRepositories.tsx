@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
-import { reposAPI } from "../services/api";
-import { useAuth } from "../contexts/AuthContext";
-import { Folder, Lock, Globe, KeyRound, Loader, Search,ExternalLink } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { Search, Folder, Users, Loader, ExternalLink, Lock, Globe } from 'lucide-react';
+import { reposAPI } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
-interface GitHubRepositoryWithSecretsCheck {
+interface GitHubRepository {
   id: number;
   name: string;
   fullName: string;
@@ -17,61 +17,59 @@ interface GitHubRepositoryWithSecretsCheck {
   updatedAt?: string;
   fork?: boolean;
   archived?: boolean;
-  hasSecrets: boolean;
 }
 
-export default function RepositoryList() {
-   const { isAuthenticated } = useAuth();
-  const [searchTerm, setSearchTerm] = useState("");
+export default function GitHubRepositories() {
+  const { isAuthenticated } = useAuth();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filter, setFilter] = useState<'all' | 'private' | 'public'>('all');
+  const [repositories, setRepositories] = useState<GitHubRepository[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [repositories, setRepositories] = useState<GitHubRepositoryWithSecretsCheck[]>([]);
-  const [error, setError] = useState("");
-  const [filter, setFilter] = useState<'all' | 'withSecrets' | 'withoutSecrets'>('all');
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchRepositories = async () => {
+    const fetchGitHubRepositories = async () => {
       if (!isAuthenticated) {
-        setError("Please log in to view your GitHub repositories");
+        setError('Please log in to view your GitHub repositories');
         setIsLoading(false);
         return;
       }
+
       try {
         setIsLoading(true);
-        setError("");
-
-        const response = await reposAPI.listAllTheReposWithSecretsCheck();
-        console.log("GitHub repositories response:", response);
-
-        if (Array.isArray(response)) {
-          setRepositories(response);
+        setError('');
+        
+        const response = await reposAPI.listRepos();
+        console.log('GitHub repositories response:', response);
+        
+        if (response.error) {
+          setError(response.errorDescription || response.error || 'Failed to fetch repositories');
+        } else if (response.repos) {
+          setRepositories(response.repos);
         } else {
-          setError("No repositories found");
+          setError('No repositories found');
         }
       } catch (err) {
-        console.error("Failed to fetch GitHub repositories:", err);
-        setError("Failed to load repositories. Please try again.");
+        console.error('Failed to fetch GitHub repositories:', err);
+        setError('Failed to load repositories. Please try again.');
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchRepositories();
+    fetchGitHubRepositories();
   }, [isAuthenticated]);
 
   const filteredRepositories = repositories.filter(repo => {
-    const matchesSearch =
-      repo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (repo.description && repo.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      repo.ownerLogin.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesFilter =
-      filter === 'all' ||
-      (filter === 'withSecrets' && repo.hasSecrets) ||
-      (filter === 'withoutSecrets' && !repo.hasSecrets);
-
+    const matchesSearch = repo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (repo.description && repo.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                         repo.ownerLogin.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = filter === 'all' || 
+                         (filter === 'private' && repo.private) ||
+                         (filter === 'public' && !repo.private);
+    
     return matchesSearch && matchesFilter;
   });
-
 
   if (!isAuthenticated) {
     return (
@@ -92,7 +90,7 @@ export default function RepositoryList() {
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="flex items-center justify-center py-12">
           <Loader className="w-8 h-8 animate-spin text-green-600" />
-          <span className="ml-3 text-gray-600">Loading repositories...</span>
+          <span className="ml-3 text-gray-600">Loading GitHub repositories...</span>
         </div>
       </div>
     );
@@ -121,8 +119,8 @@ export default function RepositoryList() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Secrets Management</h1>
-        <p className="text-gray-600">Upload and manage environment variables for your repositories</p>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">GitHub Repositories</h1>
+        <p className="text-gray-600">Your repositories from GitHub</p>
       </div>
 
       <div className="mb-6 flex flex-col sm:flex-row gap-4">
@@ -136,57 +134,52 @@ export default function RepositoryList() {
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
           />
         </div>
+        
         <div className="flex gap-2">
           <button
             onClick={() => setFilter('all')}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              filter === 'all'
-                ? 'bg-green-600 text-white'
+              filter === 'all' 
+                ? 'bg-green-600 text-white' 
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
             }`}
           >
             All ({repositories.length})
           </button>
           <button
-            onClick={() => setFilter('withSecrets')}
+            onClick={() => setFilter('public')}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              filter === 'withSecrets'
-                ? 'bg-green-600 text-white'
+              filter === 'public' 
+                ? 'bg-green-600 text-white' 
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
             }`}
           >
-            With Secrets ({repositories.filter(r => r.hasSecrets).length})
+            Public ({repositories.filter(r => !r.private).length})
           </button>
           <button
-            onClick={() => setFilter('withoutSecrets')}
+            onClick={() => setFilter('private')}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              filter === 'withoutSecrets'
-                ? 'bg-green-600 text-white'
+              filter === 'private' 
+                ? 'bg-green-600 text-white' 
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
             }`}
           >
-            Without Secrets ({repositories.filter(r => !r.hasSecrets).length})
+            Private ({repositories.filter(r => r.private).length})
           </button>
         </div>
       </div>
-
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {filteredRepositories.map(repo => (
           <div
             key={repo.id}
-            className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg hover:border-gray-300 transition-all duration-200 transform hover:scale-102"
+            className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg hover:border-gray-300 transition-all duration-200 transform hover:scale-102 animate-slideDown"
+            style={{ animationDelay: `${filteredRepositories.indexOf(repo) * 50}ms` }}
           >
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center space-x-2">
                 <Folder className="w-5 h-5 text-gray-600" />
                 <h3 className="text-lg font-semibold text-gray-900">{repo.name}</h3>
-                {repo.hasSecrets && (
-                  <span className="ml-2 px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full flex items-center">
-                    <KeyRound className="w-3 h-3 mr-1" />
-                    Secrets
-                  </span>
-                )}
               </div>
               <div className="flex items-center space-x-2">
                 {repo.private ? (
@@ -202,9 +195,11 @@ export default function RepositoryList() {
                 )}
               </div>
             </div>
+            
             <p className="text-gray-600 text-sm mb-4 line-clamp-2">{repo.description || 'No description available'}</p>
             <div className="flex items-center justify-between pt-3 border-t border-gray-100">
               <div className="flex items-center space-x-1 text-sm text-gray-600">
+                <Users className="w-4 h-4" />
                 <span>{repo.ownerLogin}</span>
               </div>
               <a
@@ -230,4 +225,4 @@ export default function RepositoryList() {
       )}
     </div>
   );
-}
+} 
