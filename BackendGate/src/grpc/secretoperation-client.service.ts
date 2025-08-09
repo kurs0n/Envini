@@ -74,7 +74,8 @@ interface DownloadSecretRequest {
   accessToken: string;
   ownerLogin: string;
   repoName: string;
-  version: number;
+  version?: number;
+  tag?: string;
   userLogin: string;
 }
 

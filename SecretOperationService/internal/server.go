@@ -293,15 +293,23 @@ func (s *Server) DownloadSecret(ctx context.Context, req *secretsservice.Downloa
 		}, nil
 	}
 
-	// 3. Get secret
+	// 3. Get secret based on provided parameters
 	var secret *Secret
 	var err2 error
-	if req.Version == 0 {
-		// Get latest version
+
+	switch {
+	case *req.Tag != "" && *req.Version != 0:
+		// Both tag and version provided - get specific version with tag
+		secret, err2 = GetSecretByTagAndVersion(repo.ID, *req.Tag, int(*req.Version))
+	case *req.Tag != "":
+		// Only tag provided - get latest version with tag
+		secret, err2 = GetSecretByTag(repo.ID, *req.Tag)
+	case *req.Version != 0:
+		// Only version provided - get specific version
+		secret, err2 = GetSecretByVersion(repo.ID, int(*req.Version))
+	default:
+		// Neither provided - get latest version
 		secret, err2 = GetLatestSecret(repo.ID)
-	} else {
-		// Get specific version
-		secret, err2 = GetSecretByVersion(repo.ID, int(req.Version))
 	}
 
 	if err2 != nil {
@@ -337,85 +345,6 @@ func (s *Server) DownloadSecret(ctx context.Context, req *secretsservice.Downloa
 
 	// 7. Log successful operation
 	LogAuditEvent("DOWNLOAD", &repo.ID, &secret.ID, serviceName, requestID, req.UserLogin, true, "")
-
-	return &secretsservice.DownloadSecretResponse{
-		Success:        true,
-		Version:        int32(secret.Version),
-		Tag:            secret.Tag,
-		EnvFileContent: []byte(envContent),
-		Checksum:       secret.Checksum,
-		UploadedBy:     secret.UploadedBy,
-		CreatedAt:      secret.CreatedAt.Format(time.RFC3339),
-	}, nil
-}
-
-func (s *Server) DownloadSecretByTag(ctx context.Context, req *secretsservice.DownloadSecretByTagRequest) (*secretsservice.DownloadSecretResponse, error) {
-	serviceName, requestID := s.getAuditInfo(ctx)
-
-	// 1. Check if user has access to the repository
-	listResp, err := s.ListRepos(ctx, &secretsservice.ListReposRequest{AccessToken: req.AccessToken})
-	if err != nil || listResp.Error != "" {
-		LogAuditEvent("DOWNLOAD_BY_TAG", nil, nil, serviceName, requestID, req.UserLogin, false, "Failed to list repos: "+listResp.Error)
-		return &secretsservice.DownloadSecretResponse{
-			Success: false,
-			Error:   "Failed to list repos: " + listResp.Error,
-		}, nil
-	}
-
-	if !HasRepoAccess(listResp.Repos, req.OwnerLogin, req.RepoName) {
-		LogAuditEvent("DOWNLOAD_BY_TAG", nil, nil, serviceName, requestID, req.UserLogin, false, "No access to repository")
-		return &secretsservice.DownloadSecretResponse{
-			Success: false,
-			Error:   "No access to repository",
-		}, nil
-	}
-
-	// 2. Get repository from database
-	var repo Repository
-	result := DB.Where("owner_login = ? AND repo_name = ?", req.OwnerLogin, req.RepoName).First(&repo)
-	if result.Error != nil {
-		LogAuditEvent("DOWNLOAD_BY_TAG", nil, nil, serviceName, requestID, req.UserLogin, false, "Repository not found in database")
-		return &secretsservice.DownloadSecretResponse{
-			Success: false,
-			Error:   "Repository not found in database",
-		}, nil
-	}
-
-	// 3. Get secret by tag
-	secret, err := GetSecretByTag(repo.ID, req.Tag)
-	if err != nil {
-		LogAuditEvent("DOWNLOAD_BY_TAG", &repo.ID, nil, serviceName, requestID, req.UserLogin, false, "Failed to get secret by tag: "+err.Error())
-		return &secretsservice.DownloadSecretResponse{
-			Success: false,
-			Error:   "Failed to get secret by tag: " + err.Error(),
-		}, nil
-	}
-
-	// 4. Decrypt secret data if encrypted
-	decryptedData, err := DecryptSecretData(secret)
-	if err != nil {
-		LogAuditEvent("DOWNLOAD_BY_TAG", &repo.ID, &secret.ID, serviceName, requestID, req.UserLogin, false, "Failed to decrypt secret: "+err.Error())
-		return &secretsservice.DownloadSecretResponse{
-			Success: false,
-			Error:   "Failed to decrypt secret: " + err.Error(),
-		}, nil
-	}
-
-	// 5. Convert JSON back to .env format
-	var envData map[string]string
-	if err := json.Unmarshal([]byte(decryptedData), &envData); err != nil {
-		LogAuditEvent("DOWNLOAD_BY_TAG", &repo.ID, &secret.ID, serviceName, requestID, req.UserLogin, false, "Failed to unmarshal env data: "+err.Error())
-		return &secretsservice.DownloadSecretResponse{
-			Success: false,
-			Error:   "Failed to unmarshal env data: " + err.Error(),
-		}, nil
-	}
-
-	// 6. Convert to .env format
-	envContent := s.convertToEnvFormat(envData)
-
-	// 7. Log successful download
-	LogAuditEvent("DOWNLOAD_BY_TAG", &repo.ID, &secret.ID, serviceName, requestID, req.UserLogin, true, "")
 
 	return &secretsservice.DownloadSecretResponse{
 		Success:        true,

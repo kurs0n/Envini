@@ -170,11 +170,12 @@ export class SecretsService {
     }
   }
 
-  async downloadSecret(
+    async downloadSecret(
     jwt: string,
     ownerLogin: string,
     repoName: string,
-    version: number,
+    version?: number,
+    tag?: string,
   ): Promise<DownloadSecretResult> {
     try {
       const authTokenResponse = await this.authService.getAuthToken(jwt);
@@ -205,70 +206,8 @@ export class SecretsService {
         accessToken: authTokenResponse.accessToken,
         ownerLogin,
         repoName,
-        version,
-        userLogin: userLoginResponse.userLogin,
-      });
-
-      if (response.success) {
-        return {
-          success: true,
-          version: response.version,
-          tag: response.tag,
-          envFileContent: response.envFileContent,
-          checksum: response.checksum,
-          uploadedBy: response.uploadedBy,
-          createdAt: response.createdAt,
-        };
-      } else {
-        return {
-          error: 'download_failed',
-          errorDescription: response.error || 'Failed to download secret',
-        };
-      }
-    } catch (error) {
-      return {
-        error: 'download_error',
-        errorDescription: error.message || 'Internal server error during download',
-      };
-    }
-  }
-
-  async downloadSecretByTag(
-    jwt: string,
-    ownerLogin: string,
-    repoName: string,
-    tag: string,
-  ): Promise<DownloadSecretResult> {
-    try {
-      const authTokenResponse = await this.authService.getAuthToken(jwt);
-      const userLoginResponse = await this.authService.getUserLogin(jwt);
-
-      if (authTokenResponse.error) {
-        return {
-          error: authTokenResponse.error,
-          errorDescription: authTokenResponse.errorDescription,
-        };
-      }
-
-      if (!authTokenResponse.accessToken) {
-        return {
-          error: 'no_access_token',
-          errorDescription: 'No access token received from auth service',
-        };
-      }
-
-      if(!userLoginResponse.userLogin) {
-        return {
-          error: 'no_user_login',
-          errorDescription: 'No user login received from auth service',
-        };
-      }
-
-      const response = await this.secretOperationClient.downloadSecretByTag({
-        accessToken: authTokenResponse.accessToken,
-        ownerLogin,
-        repoName,
-        tag,
+        version: version || 0,
+        tag: tag || '',
         userLogin: userLoginResponse.userLogin,
       });
 

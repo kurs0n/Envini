@@ -328,6 +328,15 @@ func GetSecretByTag(repoID uint, tag string) (*Secret, error) {
 	return &secret, nil
 }
 
+func GetSecretByTagAndVersion(repoID uint, tag string, version int) (*Secret, error) {
+	var secret Secret
+	result := DB.Where("repo_id = ? AND tag = ? AND version = ?", repoID, tag, version).First(&secret)
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to get secret by tag and version: %v", result.Error)
+	}
+	return &secret, nil
+}
+
 // GetLatestSecret gets the latest version of a secret
 func GetLatestSecret(repoID uint) (*Secret, error) {
 	var secret Secret

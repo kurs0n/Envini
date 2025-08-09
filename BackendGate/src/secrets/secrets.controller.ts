@@ -74,32 +74,19 @@ export class SecretsController {
     }
 
     const jwt = authHeader.substring(7);
+    const versionNumber = version ? parseInt(version, 10) : undefined;
 
-    let result: DownloadSecretResult;
-
-    if (tag) {
-      // Download by tag
-      result = await this.secretsService.downloadSecretByTag(
-        jwt,
-        ownerLogin,
-        repoName,
-        tag,
-      );
-    } else {
-      // Download by version
-      const versionNumber = version ? parseInt(version, 10) : 0;
-
-      if (version && isNaN(versionNumber)) {
-        throw new BadRequestException('Version must be a valid number');
-      }
-
-      result = await this.secretsService.downloadSecret(
-        jwt,
-        ownerLogin,
-        repoName,
-        versionNumber,
-      );
+    if (version && isNaN(versionNumber as number)) {
+      throw new BadRequestException('Version must be a valid number');
     }
+
+    const result = await this.secretsService.downloadSecret(
+      jwt,
+      ownerLogin,
+      repoName,
+      versionNumber,
+      tag,
+    );
 
     if (result.success && result.envFileContent && result.version !== undefined) {
       // Set response headers for file download
@@ -172,29 +159,18 @@ export class SecretsController {
     }
 
     const jwt = authHeader.substring(7);
+    const versionNumber = version ? parseInt(version, 10) : undefined;
 
-    if (tag) {
-      // Get content by tag
-      return await this.secretsService.downloadSecretByTag(
-        jwt,
-        ownerLogin,
-        repoName,
-        tag,
-      );
-    } else {
-      // Get content by version
-      const versionNumber = version ? parseInt(version, 10) : 0;
-
-      if (version && isNaN(versionNumber)) {
-        throw new BadRequestException('Version must be a valid number');
-      }
-
-      return await this.secretsService.downloadSecret(
-        jwt,
-        ownerLogin,
-        repoName,
-        versionNumber,
-      );
+    if (version && isNaN(versionNumber as number)) {
+      throw new BadRequestException('Version must be a valid number');
     }
+
+    return await this.secretsService.downloadSecret(
+      jwt,
+      ownerLogin,
+      repoName,
+      versionNumber,
+      tag,
+    );
   }
 } 

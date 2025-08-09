@@ -578,8 +578,9 @@ type DownloadSecretRequest struct {
 	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
 	OwnerLogin    string                 `protobuf:"bytes,2,opt,name=owner_login,json=ownerLogin,proto3" json:"owner_login,omitempty"`
 	RepoName      string                 `protobuf:"bytes,3,opt,name=repo_name,json=repoName,proto3" json:"repo_name,omitempty"`
-	Version       int32                  `protobuf:"varint,4,opt,name=version,proto3" json:"version,omitempty"` // 0 means latest version
-	UserLogin     string                 `protobuf:"bytes,5,opt,name=user_login,json=userLogin,proto3" json:"user_login,omitempty"`
+	Version       *int32                 `protobuf:"varint,4,opt,name=version,proto3,oneof" json:"version,omitempty"` // 0 means latest version
+	Tag           *string                `protobuf:"bytes,5,opt,name=tag,proto3,oneof" json:"tag,omitempty"`
+	UserLogin     string                 `protobuf:"bytes,6,opt,name=user_login,json=userLogin,proto3" json:"user_login,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -636,89 +637,20 @@ func (x *DownloadSecretRequest) GetRepoName() string {
 }
 
 func (x *DownloadSecretRequest) GetVersion() int32 {
-	if x != nil {
-		return x.Version
+	if x != nil && x.Version != nil {
+		return *x.Version
 	}
 	return 0
 }
 
+func (x *DownloadSecretRequest) GetTag() string {
+	if x != nil && x.Tag != nil {
+		return *x.Tag
+	}
+	return ""
+}
+
 func (x *DownloadSecretRequest) GetUserLogin() string {
-	if x != nil {
-		return x.UserLogin
-	}
-	return ""
-}
-
-type DownloadSecretByTagRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
-	OwnerLogin    string                 `protobuf:"bytes,2,opt,name=owner_login,json=ownerLogin,proto3" json:"owner_login,omitempty"`
-	RepoName      string                 `protobuf:"bytes,3,opt,name=repo_name,json=repoName,proto3" json:"repo_name,omitempty"`
-	Tag           string                 `protobuf:"bytes,4,opt,name=tag,proto3" json:"tag,omitempty"` // Tag to search for
-	UserLogin     string                 `protobuf:"bytes,5,opt,name=user_login,json=userLogin,proto3" json:"user_login,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *DownloadSecretByTagRequest) Reset() {
-	*x = DownloadSecretByTagRequest{}
-	mi := &file_secrets_proto_msgTypes[9]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *DownloadSecretByTagRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*DownloadSecretByTagRequest) ProtoMessage() {}
-
-func (x *DownloadSecretByTagRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_secrets_proto_msgTypes[9]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use DownloadSecretByTagRequest.ProtoReflect.Descriptor instead.
-func (*DownloadSecretByTagRequest) Descriptor() ([]byte, []int) {
-	return file_secrets_proto_rawDescGZIP(), []int{9}
-}
-
-func (x *DownloadSecretByTagRequest) GetAccessToken() string {
-	if x != nil {
-		return x.AccessToken
-	}
-	return ""
-}
-
-func (x *DownloadSecretByTagRequest) GetOwnerLogin() string {
-	if x != nil {
-		return x.OwnerLogin
-	}
-	return ""
-}
-
-func (x *DownloadSecretByTagRequest) GetRepoName() string {
-	if x != nil {
-		return x.RepoName
-	}
-	return ""
-}
-
-func (x *DownloadSecretByTagRequest) GetTag() string {
-	if x != nil {
-		return x.Tag
-	}
-	return ""
-}
-
-func (x *DownloadSecretByTagRequest) GetUserLogin() string {
 	if x != nil {
 		return x.UserLogin
 	}
@@ -741,7 +673,7 @@ type DownloadSecretResponse struct {
 
 func (x *DownloadSecretResponse) Reset() {
 	*x = DownloadSecretResponse{}
-	mi := &file_secrets_proto_msgTypes[10]
+	mi := &file_secrets_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -753,7 +685,7 @@ func (x *DownloadSecretResponse) String() string {
 func (*DownloadSecretResponse) ProtoMessage() {}
 
 func (x *DownloadSecretResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_secrets_proto_msgTypes[10]
+	mi := &file_secrets_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -766,7 +698,7 @@ func (x *DownloadSecretResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DownloadSecretResponse.ProtoReflect.Descriptor instead.
 func (*DownloadSecretResponse) Descriptor() ([]byte, []int) {
-	return file_secrets_proto_rawDescGZIP(), []int{10}
+	return file_secrets_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *DownloadSecretResponse) GetSuccess() bool {
@@ -838,7 +770,7 @@ type DeleteSecretRequest struct {
 
 func (x *DeleteSecretRequest) Reset() {
 	*x = DeleteSecretRequest{}
-	mi := &file_secrets_proto_msgTypes[11]
+	mi := &file_secrets_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -850,7 +782,7 @@ func (x *DeleteSecretRequest) String() string {
 func (*DeleteSecretRequest) ProtoMessage() {}
 
 func (x *DeleteSecretRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_secrets_proto_msgTypes[11]
+	mi := &file_secrets_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -863,7 +795,7 @@ func (x *DeleteSecretRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteSecretRequest.ProtoReflect.Descriptor instead.
 func (*DeleteSecretRequest) Descriptor() ([]byte, []int) {
-	return file_secrets_proto_rawDescGZIP(), []int{11}
+	return file_secrets_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *DeleteSecretRequest) GetAccessToken() string {
@@ -912,7 +844,7 @@ type DeleteSecretResponse struct {
 
 func (x *DeleteSecretResponse) Reset() {
 	*x = DeleteSecretResponse{}
-	mi := &file_secrets_proto_msgTypes[12]
+	mi := &file_secrets_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -924,7 +856,7 @@ func (x *DeleteSecretResponse) String() string {
 func (*DeleteSecretResponse) ProtoMessage() {}
 
 func (x *DeleteSecretResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_secrets_proto_msgTypes[12]
+	mi := &file_secrets_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -937,7 +869,7 @@ func (x *DeleteSecretResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteSecretResponse.ProtoReflect.Descriptor instead.
 func (*DeleteSecretResponse) Descriptor() ([]byte, []int) {
-	return file_secrets_proto_rawDescGZIP(), []int{12}
+	return file_secrets_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *DeleteSecretResponse) GetSuccess() bool {
@@ -971,7 +903,7 @@ type ListAllRepositoriesWithVersionsRequest struct {
 
 func (x *ListAllRepositoriesWithVersionsRequest) Reset() {
 	*x = ListAllRepositoriesWithVersionsRequest{}
-	mi := &file_secrets_proto_msgTypes[13]
+	mi := &file_secrets_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -983,7 +915,7 @@ func (x *ListAllRepositoriesWithVersionsRequest) String() string {
 func (*ListAllRepositoriesWithVersionsRequest) ProtoMessage() {}
 
 func (x *ListAllRepositoriesWithVersionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_secrets_proto_msgTypes[13]
+	mi := &file_secrets_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -996,7 +928,7 @@ func (x *ListAllRepositoriesWithVersionsRequest) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use ListAllRepositoriesWithVersionsRequest.ProtoReflect.Descriptor instead.
 func (*ListAllRepositoriesWithVersionsRequest) Descriptor() ([]byte, []int) {
-	return file_secrets_proto_rawDescGZIP(), []int{13}
+	return file_secrets_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ListAllRepositoriesWithVersionsRequest) GetAccessToken() string {
@@ -1023,7 +955,7 @@ type ListAllRepositoriesWithVersionsResponse struct {
 
 func (x *ListAllRepositoriesWithVersionsResponse) Reset() {
 	*x = ListAllRepositoriesWithVersionsResponse{}
-	mi := &file_secrets_proto_msgTypes[14]
+	mi := &file_secrets_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1035,7 +967,7 @@ func (x *ListAllRepositoriesWithVersionsResponse) String() string {
 func (*ListAllRepositoriesWithVersionsResponse) ProtoMessage() {}
 
 func (x *ListAllRepositoriesWithVersionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_secrets_proto_msgTypes[14]
+	mi := &file_secrets_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1048,7 +980,7 @@ func (x *ListAllRepositoriesWithVersionsResponse) ProtoReflect() protoreflect.Me
 
 // Deprecated: Use ListAllRepositoriesWithVersionsResponse.ProtoReflect.Descriptor instead.
 func (*ListAllRepositoriesWithVersionsResponse) Descriptor() ([]byte, []int) {
-	return file_secrets_proto_rawDescGZIP(), []int{14}
+	return file_secrets_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ListAllRepositoriesWithVersionsResponse) GetRepositories() []*RepositoryWithVersions {
@@ -1084,7 +1016,7 @@ type RepositoryWithVersions struct {
 
 func (x *RepositoryWithVersions) Reset() {
 	*x = RepositoryWithVersions{}
-	mi := &file_secrets_proto_msgTypes[15]
+	mi := &file_secrets_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1096,7 +1028,7 @@ func (x *RepositoryWithVersions) String() string {
 func (*RepositoryWithVersions) ProtoMessage() {}
 
 func (x *RepositoryWithVersions) ProtoReflect() protoreflect.Message {
-	mi := &file_secrets_proto_msgTypes[15]
+	mi := &file_secrets_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1109,7 +1041,7 @@ func (x *RepositoryWithVersions) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RepositoryWithVersions.ProtoReflect.Descriptor instead.
 func (*RepositoryWithVersions) Descriptor() ([]byte, []int) {
-	return file_secrets_proto_rawDescGZIP(), []int{15}
+	return file_secrets_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *RepositoryWithVersions) GetId() uint32 {
@@ -1242,23 +1174,19 @@ const file_secrets_proto_rawDesc = "" +
 	"\vuploaded_by\x18\x04 \x01(\tR\n" +
 	"uploadedBy\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x05 \x01(\tR\tcreatedAt\"\xb1\x01\n" +
+	"created_at\x18\x05 \x01(\tR\tcreatedAt\"\xe1\x01\n" +
 	"\x15DownloadSecretRequest\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x1f\n" +
 	"\vowner_login\x18\x02 \x01(\tR\n" +
 	"ownerLogin\x12\x1b\n" +
-	"\trepo_name\x18\x03 \x01(\tR\brepoName\x12\x18\n" +
-	"\aversion\x18\x04 \x01(\x05R\aversion\x12\x1d\n" +
+	"\trepo_name\x18\x03 \x01(\tR\brepoName\x12\x1d\n" +
+	"\aversion\x18\x04 \x01(\x05H\x00R\aversion\x88\x01\x01\x12\x15\n" +
+	"\x03tag\x18\x05 \x01(\tH\x01R\x03tag\x88\x01\x01\x12\x1d\n" +
 	"\n" +
-	"user_login\x18\x05 \x01(\tR\tuserLogin\"\xae\x01\n" +
-	"\x1aDownloadSecretByTagRequest\x12!\n" +
-	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x1f\n" +
-	"\vowner_login\x18\x02 \x01(\tR\n" +
-	"ownerLogin\x12\x1b\n" +
-	"\trepo_name\x18\x03 \x01(\tR\brepoName\x12\x10\n" +
-	"\x03tag\x18\x04 \x01(\tR\x03tag\x12\x1d\n" +
+	"user_login\x18\x06 \x01(\tR\tuserLoginB\n" +
 	"\n" +
-	"user_login\x18\x05 \x01(\tR\tuserLogin\"\xfa\x01\n" +
+	"\b_versionB\x06\n" +
+	"\x04_tag\"\xfa\x01\n" +
 	"\x16DownloadSecretResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
 	"\aversion\x18\x02 \x01(\x05R\aversion\x12\x10\n" +
@@ -1305,13 +1233,12 @@ const file_secrets_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\n" +
 	" \x01(\tR\tupdatedAt\x129\n" +
-	"\bversions\x18\v \x03(\v2\x1d.secretsservice.SecretVersionR\bversions2\xe6\x05\n" +
+	"\bversions\x18\v \x03(\v2\x1d.secretsservice.SecretVersionR\bversions2\xfb\x04\n" +
 	"\x0eSecretsService\x12P\n" +
 	"\tListRepos\x12 .secretsservice.ListReposRequest\x1a!.secretsservice.ListReposResponse\x12Y\n" +
 	"\fUploadSecret\x12#.secretsservice.UploadSecretRequest\x1a$.secretsservice.UploadSecretResponse\x12k\n" +
 	"\x12ListSecretVersions\x12).secretsservice.ListSecretVersionsRequest\x1a*.secretsservice.ListSecretVersionsResponse\x12_\n" +
-	"\x0eDownloadSecret\x12%.secretsservice.DownloadSecretRequest\x1a&.secretsservice.DownloadSecretResponse\x12i\n" +
-	"\x13DownloadSecretByTag\x12*.secretsservice.DownloadSecretByTagRequest\x1a&.secretsservice.DownloadSecretResponse\x12Y\n" +
+	"\x0eDownloadSecret\x12%.secretsservice.DownloadSecretRequest\x1a&.secretsservice.DownloadSecretResponse\x12Y\n" +
 	"\fDeleteSecret\x12#.secretsservice.DeleteSecretRequest\x1a$.secretsservice.DeleteSecretResponse\x12\x92\x01\n" +
 	"\x1fListAllRepositoriesWithVersions\x126.secretsservice.ListAllRepositoriesWithVersionsRequest\x1a7.secretsservice.ListAllRepositoriesWithVersionsResponseB7Z5github.com/kurs0n/SecretsService/proto;secretsserviceb\x06proto3"
 
@@ -1327,7 +1254,7 @@ func file_secrets_proto_rawDescGZIP() []byte {
 	return file_secrets_proto_rawDescData
 }
 
-var file_secrets_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_secrets_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_secrets_proto_goTypes = []any{
 	(*ListReposRequest)(nil),                        // 0: secretsservice.ListReposRequest
 	(*ListReposResponse)(nil),                       // 1: secretsservice.ListReposResponse
@@ -1338,35 +1265,32 @@ var file_secrets_proto_goTypes = []any{
 	(*ListSecretVersionsResponse)(nil),              // 6: secretsservice.ListSecretVersionsResponse
 	(*SecretVersion)(nil),                           // 7: secretsservice.SecretVersion
 	(*DownloadSecretRequest)(nil),                   // 8: secretsservice.DownloadSecretRequest
-	(*DownloadSecretByTagRequest)(nil),              // 9: secretsservice.DownloadSecretByTagRequest
-	(*DownloadSecretResponse)(nil),                  // 10: secretsservice.DownloadSecretResponse
-	(*DeleteSecretRequest)(nil),                     // 11: secretsservice.DeleteSecretRequest
-	(*DeleteSecretResponse)(nil),                    // 12: secretsservice.DeleteSecretResponse
-	(*ListAllRepositoriesWithVersionsRequest)(nil),  // 13: secretsservice.ListAllRepositoriesWithVersionsRequest
-	(*ListAllRepositoriesWithVersionsResponse)(nil), // 14: secretsservice.ListAllRepositoriesWithVersionsResponse
-	(*RepositoryWithVersions)(nil),                  // 15: secretsservice.RepositoryWithVersions
+	(*DownloadSecretResponse)(nil),                  // 9: secretsservice.DownloadSecretResponse
+	(*DeleteSecretRequest)(nil),                     // 10: secretsservice.DeleteSecretRequest
+	(*DeleteSecretResponse)(nil),                    // 11: secretsservice.DeleteSecretResponse
+	(*ListAllRepositoriesWithVersionsRequest)(nil),  // 12: secretsservice.ListAllRepositoriesWithVersionsRequest
+	(*ListAllRepositoriesWithVersionsResponse)(nil), // 13: secretsservice.ListAllRepositoriesWithVersionsResponse
+	(*RepositoryWithVersions)(nil),                  // 14: secretsservice.RepositoryWithVersions
 }
 var file_secrets_proto_depIdxs = []int32{
 	2,  // 0: secretsservice.ListReposResponse.repos:type_name -> secretsservice.Repo
 	7,  // 1: secretsservice.ListSecretVersionsResponse.versions:type_name -> secretsservice.SecretVersion
-	15, // 2: secretsservice.ListAllRepositoriesWithVersionsResponse.repositories:type_name -> secretsservice.RepositoryWithVersions
+	14, // 2: secretsservice.ListAllRepositoriesWithVersionsResponse.repositories:type_name -> secretsservice.RepositoryWithVersions
 	7,  // 3: secretsservice.RepositoryWithVersions.versions:type_name -> secretsservice.SecretVersion
 	0,  // 4: secretsservice.SecretsService.ListRepos:input_type -> secretsservice.ListReposRequest
 	3,  // 5: secretsservice.SecretsService.UploadSecret:input_type -> secretsservice.UploadSecretRequest
 	5,  // 6: secretsservice.SecretsService.ListSecretVersions:input_type -> secretsservice.ListSecretVersionsRequest
 	8,  // 7: secretsservice.SecretsService.DownloadSecret:input_type -> secretsservice.DownloadSecretRequest
-	9,  // 8: secretsservice.SecretsService.DownloadSecretByTag:input_type -> secretsservice.DownloadSecretByTagRequest
-	11, // 9: secretsservice.SecretsService.DeleteSecret:input_type -> secretsservice.DeleteSecretRequest
-	13, // 10: secretsservice.SecretsService.ListAllRepositoriesWithVersions:input_type -> secretsservice.ListAllRepositoriesWithVersionsRequest
-	1,  // 11: secretsservice.SecretsService.ListRepos:output_type -> secretsservice.ListReposResponse
-	4,  // 12: secretsservice.SecretsService.UploadSecret:output_type -> secretsservice.UploadSecretResponse
-	6,  // 13: secretsservice.SecretsService.ListSecretVersions:output_type -> secretsservice.ListSecretVersionsResponse
-	10, // 14: secretsservice.SecretsService.DownloadSecret:output_type -> secretsservice.DownloadSecretResponse
-	10, // 15: secretsservice.SecretsService.DownloadSecretByTag:output_type -> secretsservice.DownloadSecretResponse
-	12, // 16: secretsservice.SecretsService.DeleteSecret:output_type -> secretsservice.DeleteSecretResponse
-	14, // 17: secretsservice.SecretsService.ListAllRepositoriesWithVersions:output_type -> secretsservice.ListAllRepositoriesWithVersionsResponse
-	11, // [11:18] is the sub-list for method output_type
-	4,  // [4:11] is the sub-list for method input_type
+	10, // 8: secretsservice.SecretsService.DeleteSecret:input_type -> secretsservice.DeleteSecretRequest
+	12, // 9: secretsservice.SecretsService.ListAllRepositoriesWithVersions:input_type -> secretsservice.ListAllRepositoriesWithVersionsRequest
+	1,  // 10: secretsservice.SecretsService.ListRepos:output_type -> secretsservice.ListReposResponse
+	4,  // 11: secretsservice.SecretsService.UploadSecret:output_type -> secretsservice.UploadSecretResponse
+	6,  // 12: secretsservice.SecretsService.ListSecretVersions:output_type -> secretsservice.ListSecretVersionsResponse
+	9,  // 13: secretsservice.SecretsService.DownloadSecret:output_type -> secretsservice.DownloadSecretResponse
+	11, // 14: secretsservice.SecretsService.DeleteSecret:output_type -> secretsservice.DeleteSecretResponse
+	13, // 15: secretsservice.SecretsService.ListAllRepositoriesWithVersions:output_type -> secretsservice.ListAllRepositoriesWithVersionsResponse
+	10, // [10:16] is the sub-list for method output_type
+	4,  // [4:10] is the sub-list for method input_type
 	4,  // [4:4] is the sub-list for extension type_name
 	4,  // [4:4] is the sub-list for extension extendee
 	0,  // [0:4] is the sub-list for field type_name
@@ -1377,13 +1301,14 @@ func file_secrets_proto_init() {
 	if File_secrets_proto != nil {
 		return
 	}
+	file_secrets_proto_msgTypes[8].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_secrets_proto_rawDesc), len(file_secrets_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   16,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

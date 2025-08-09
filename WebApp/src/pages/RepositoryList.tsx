@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { reposAPI } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
 import { Folder, Lock, Globe, KeyRound, Loader, Search,ExternalLink } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface GitHubRepositoryWithSecretsCheck {
   id: number;
@@ -21,7 +22,7 @@ interface GitHubRepositoryWithSecretsCheck {
 }
 
 export default function RepositoryList() {
-   const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [repositories, setRepositories] = useState<GitHubRepositoryWithSecretsCheck[]>([]);
@@ -57,6 +58,10 @@ export default function RepositoryList() {
 
     fetchRepositories();
   }, [isAuthenticated]);
+
+  const onClickRepo = () => {
+     
+  };
 
   const filteredRepositories = repositories.filter(repo => {
     const matchesSearch =
@@ -173,7 +178,8 @@ export default function RepositoryList() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {filteredRepositories.map(repo => (
-          <div
+          <Link
+            to={`/repositories/${repo.ownerLogin}/${repo.name}`}
             key={repo.id}
             className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg hover:border-gray-300 transition-all duration-200 transform hover:scale-102"
           >
@@ -217,7 +223,7 @@ export default function RepositoryList() {
                 <span>View on GitHub</span>
               </a>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 

@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
+import { isEmpty } from '../utils';
 
 // Create axios instance with base configuration
 const api: AxiosInstance = axios.create({
@@ -100,6 +101,13 @@ export const reposAPI = {
     const databaseResponse = await reposAPI.listReposWithVersions();
     const reposWithSecrets = [] as any[];
 
+    if (isEmpty(databaseResponse)) {
+      return githubResponse.repos.map((repo: any) => ({
+        ...repo,
+        hasSecrets: false, 
+      }));
+    }
+
     const dbRepoIdentifiers = new Set<string>();
     databaseResponse.repositories.forEach((dbRepo: any) => {
       dbRepoIdentifiers.add(`${dbRepo.ownerLogin}/${dbRepo.repoName}`);
@@ -119,7 +127,6 @@ export const reposAPI = {
   }
 }
 
-// Secrets API
 export const secretsAPI = {
   uploadSecret: async (ownerLogin: string, repoName: string, tag: string, envFileContent: string) => {
     try {
@@ -150,6 +157,7 @@ export const secretsAPI = {
       if (version !== undefined) params.append('version', version.toString());
       if (tag) params.append('tag', tag);
       
+
       const response = await api.get(`/secrets/download/${ownerLogin}/${repoName}?${params.toString()}`);
       return response.data;
     } catch (error) {
@@ -161,8 +169,9 @@ export const secretsAPI = {
   getSecretContent: async (ownerLogin: string, repoName: string, version?: number, tag?: string) => {
     try {
       const params = new URLSearchParams();
-      if (version !== undefined) params.append('version', version.toString());
       if (tag) params.append('tag', tag);
+      if (version) params.append('version', version.toString());
+
       const response = await api.get(`/secrets/content/${ownerLogin}/${repoName}?${params.toString()}`);
       return response.data;
     } catch (error) {

@@ -47,7 +47,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Validate the session
       authAPI.validateSession(jwt)
         .then((response) => {
-          console.log('Session validation response:', response);
           if (response.valid) {
             setUser(JSON.parse(savedUser));
             setIsAuthenticated(true);
