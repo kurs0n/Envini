@@ -102,6 +102,9 @@ message GetUserLoginRequest {
 
 message GetUserLoginResponse {
   string user_login = 1;
-  string error = 2;
-  string error_description = 3;
+  string avatar_url = 2;
+  string html_url = 3;
+  string name = 4;
+  string error = 5;
+  string error_description = 6;
 }

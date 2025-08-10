@@ -235,12 +235,13 @@ export class SecretsService {
     }
   }
 
-  async deleteSecret(
-    jwt: string,
-    ownerLogin: string,
-    repoName: string,
-    version: number,
-  ): Promise<DeleteSecretResult> {
+    async deleteSecret(
+      jwt: string,
+      ownerLogin: string,
+      repoName: string,
+      version?: number,
+      tag?: string
+    ): Promise<DeleteSecretResult> {
     try {
       const authTokenResponse = await this.authService.getAuthToken(jwt);
       const userLoginResponse = await this.authService.getUserLogin(jwt);
@@ -270,7 +271,8 @@ export class SecretsService {
         accessToken: authTokenResponse.accessToken,
         ownerLogin,
         repoName,
-        version,
+        version: version || 0,
+        tag: tag || '',
         userLogin: userLoginResponse.userLogin,
       });
 

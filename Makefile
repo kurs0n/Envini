@@ -7,12 +7,24 @@ proto:
 run_services:
 	@echo "Starting Auth DB..."
 	make -C Database_AuthService run
+	@echo "Waiting for Auth DB to initialize..."
+	@sleep 5
+
 	@echo "Starting Audit DB..."
 	make -C Database_AuditService run &
+	@echo "Waiting for Audit DB to initialize..."
+	@sleep 5
+
 	@echo "Starting AuthService..."
 	cd AuthService && nohup go run main.go > service.log 2>&1 &
+	@echo "Waiting for AuthService to initialize..."
+	@sleep 5
+
 	@echo "Starting SecretOperationService..."
 	cd SecretOperationService && nohup go run main.go > service.log 2>&1 &
+	@echo "Waiting for SecretOperationService to initialize..."
+	@sleep 5
+
 	@echo "Starting BackendGate..."
 	cd BackendGate && npm run start:dev
 

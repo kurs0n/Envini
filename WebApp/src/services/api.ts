@@ -63,6 +63,20 @@ export const authAPI = {
     }
   },
 
+  getUser: async (jwt: string) => {
+    try {
+      const response = await api.get('/auth/user', {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('getUser error:', error);
+      throw error;
+    }
+  },
+
   logout: async (jwt: string) => {
     try {
       const response = await api.post('/auth/logout', { jwt });
@@ -180,11 +194,11 @@ export const secretsAPI = {
     }
   },
 
-  deleteSecret: async (ownerLogin: string, repoName: string, version?: number, deleteAll?: boolean) => {
+  deleteSecret: async (ownerLogin: string, repoName: string, version: number, tag: string) => {
     try {
       const params = new URLSearchParams();
-      if (version !== undefined) params.append('version', version.toString());
-      if (deleteAll) params.append('all', 'true');
+      if (tag) params.append('tag', tag);
+      if (version) params.append('version', version.toString());
       
       const response = await api.delete(`/secrets/delete/${ownerLogin}/${repoName}?${params.toString()}`);
       return response.data;

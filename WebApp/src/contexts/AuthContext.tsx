@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authAPI } from '../services/api';
 
 interface User {
@@ -6,7 +6,7 @@ interface User {
   login: string;
   name: string;
   avatar_url: string;
-  email?: string;
+  html_url: string;
 }
 
 interface AuthContextType {
@@ -112,13 +112,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
             // Store the JWT
             localStorage.setItem('envini_jwt', response.jwt);
             
+            const responseUser = await authAPI.getUser(response.jwt);
+            console.log('User response:', responseUser);
             // Create a basic user object from the session info
             const user = {
               id: response.sessionId,
-              login: 'github_user', // We'll get the actual login later if needed
-              name: 'GitHub User',
-              avatar_url: '',
-              email: undefined
+              login: responseUser.userLogin,
+              name: responseUser.name,
+              avatar_url: responseUser.avatarUrl,
+              html_url: responseUser.htmlUrl, // This will be set after fetching user details
             };
             
             localStorage.setItem('envini_user', JSON.stringify(user));

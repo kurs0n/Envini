@@ -1,10 +1,9 @@
 import { Link } from 'react-router-dom';
-import { Settings, LogOut, User, Folder, Github } from 'lucide-react';
+import { Settings, LogOut, Folder, Github, Braces } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
-
   return (
     <nav className="bg-white border-b border-gray-200 px-4 py-3 animate-slideDown">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -25,12 +24,10 @@ export default function Navbar() {
                 <Folder className="w-4 h-4" />
                 <span>Secrets</span>
               </Link>
-              <Link 
-                to="/github-repositories" 
-                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-all duration-200 hover:scale-105"
-              >
-                <Github className="w-4 h-4" />
-                <span>GitHub Repos</span>
+              <Link className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-all duration-200 hover:scale-105"
+                 to="/logs" >
+                  <Braces className="w-4 h-4" />
+                <span>Audit Logs</span>
               </Link>
             </div>
           )}
@@ -45,7 +42,7 @@ export default function Navbar() {
                 className="w-8 h-8 rounded-full"
               />
               <div className="text-sm">
-                <div className="font-medium text-gray-900">{user.name}</div>
+                <div className="font-medium text-gray-900"><a href={user.html_url}>{user.name}</a></div>
                 <div className="text-gray-500">@{user.login}</div>
               </div>
             </div>

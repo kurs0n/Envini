@@ -8,6 +8,7 @@ import {
   GitBranch,
   FileText,
   Loader,
+  Trash2,
 } from "lucide-react";
 import { secretsAPI } from "../services/api";
 
@@ -130,45 +131,45 @@ export default function RepositoryDetails() {
     return variables;
   };
 
-const downloadEnvFile = async () => {
-  if (!selectedVersion || !owner || !repo) return;
+  const downloadEnvFile = async () => {
+    if (!selectedVersion || !owner || !repo) return;
 
-  try {
-    const response = await secretsAPI.getSecretContent(
-      owner,
-      repo,
-      selectedVersion.version,
-      selectedVersion.tag
-    );
-
-    if (response.success && response.envFileContent) {
-      // Convert Buffer data to string
-      const decoder = new TextDecoder("utf-8");
-      const content = decoder.decode(
-        new Uint8Array(response.envFileContent.data)
+    try {
+      const response = await secretsAPI.getSecretContent(
+        owner,
+        repo,
+        selectedVersion.version,
+        selectedVersion.tag
       );
 
-      // Create blob with proper line endings
-      const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-      
-      // Create download link
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = `.env.${selectedVersion.tag}.v${selectedVersion.version}`;
-      
-      // Append, click, and cleanup
-      document.body.appendChild(link);
-      link.click();
-      window.URL.revokeObjectURL(downloadUrl);
-      document.body.removeChild(link);
-    } else {
-      console.error('Failed to download: No content in response', response);
+      if (response.success && response.envFileContent) {
+        // Convert Buffer data to string
+        const decoder = new TextDecoder("utf-8");
+        const content = decoder.decode(
+          new Uint8Array(response.envFileContent.data)
+        );
+
+        // Create blob with proper line endings
+        const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+
+        // Create download link
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = `.env.${selectedVersion.tag}.v${selectedVersion.version}`;
+
+        // Append, click, and cleanup
+        document.body.appendChild(link);
+        link.click();
+        window.URL.revokeObjectURL(downloadUrl);
+        document.body.removeChild(link);
+      } else {
+        console.error('Failed to download: No content in response', response);
+      }
+    } catch (err) {
+      console.error("Failed to download environment file:", err);
     }
-  } catch (err) {
-    console.error("Failed to download environment file:", err);
-  }
-};
+  };
 
   const handleFileUpload = (file: File) => {
     const reader = new FileReader();
@@ -214,6 +215,23 @@ const downloadEnvFile = async () => {
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
       handleFileUpload(files[0]);
+    }
+  };
+
+  const handleDeleteVersion = async () => {
+    if (!selectedVersion) return;
+
+    try {
+      await secretsAPI.deleteSecret(
+        owner!, 
+        repo!,
+        selectedVersion.version,
+        selectedVersion.tag
+      )
+      window.location.reload();
+    } catch (err) {
+      console.error("Failed to delete version:", err);
+      setError("Failed to delete version. Please try again.");
     }
   };
 
@@ -402,13 +420,22 @@ const downloadEnvFile = async () => {
             </button>
 
             {selectedVersion && (
-              <button
-                onClick={downloadEnvFile}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
-              >
-                <Download className="w-4 h-4" />
-                <span>Download</span>
-              </button>
+              <>
+                <button
+                  onClick={downloadEnvFile}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Download</span>
+                </button>
+                <button
+                  onClick={handleDeleteVersion}
+                  className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Delete</span>
+                </button>
+              </>
             )}
           </div>
         </div>

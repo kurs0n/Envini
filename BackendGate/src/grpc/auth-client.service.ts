@@ -38,6 +38,9 @@ interface LogoutResponse {
 
 interface GetUserLoginResponse {
   userLogin?: string;
+  avatarUrl?: string;
+  htmlUrl?: string;
+  name?: string;
   error?: string;
   errorDescription?: string;
 }

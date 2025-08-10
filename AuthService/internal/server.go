@@ -100,8 +100,11 @@ func generateJWT(sessionID uuid.UUID) (string, error) {
 }
 
 type GithubUserInfo struct {
-	ID    int64  `json:"id"`
-	Login string `json:"login"`
+	ID        int64  `json:"id"`
+	Login     string `json:"login"`
+	AvatarURL string `json:"avatar_url"`
+	HTMLURL   string `json:"html_url"`
+	Name      string `json:"name"`
 }
 
 func getGithubUserInfo(accessToken string) (*GithubUserInfo, error) {
@@ -382,8 +385,21 @@ func (s *Server) GetUserLogin(ctx context.Context, req *authservice.GetUserLogin
 		}, nil
 	}
 
+	githubUser, err := getGithubUserInfo(sess.AccessToken)
+	if err != nil {
+		return &authservice.GetUserLoginResponse{
+			Error:            "github_user_fetch_failed",
+			ErrorDescription: err.Error(),
+		}, nil
+	}
+
 	return &authservice.GetUserLoginResponse{
-		UserLogin: sess.UserLogin,
+		UserLogin:        sess.UserLogin,
+		AvatarUrl:        githubUser.AvatarURL,
+		HtmlUrl:          githubUser.HTMLURL,
+		Name:             githubUser.Name,
+		Error:            "",
+		ErrorDescription: "",
 	}, nil
 }
 

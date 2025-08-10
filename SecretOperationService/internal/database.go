@@ -394,22 +394,31 @@ func DecryptSecretData(secret *Secret) (string, error) {
 	return string(decryptedData), nil
 }
 
-// DeleteSecret deletes a specific version of a secret
-func DeleteSecret(repoID uint, version int) error {
-	result := DB.Where("repo_id = ? AND version = ?", repoID, version).Delete(&Secret{})
+func DeleteSecretByTagAndVersion(repoID uint, tag string, version int) error {
+	result := DB.Where("repo_id = ? AND tag = ? AND version = ?", repoID, tag, version).Delete(&Secret{})
 	if result.Error != nil {
-		return fmt.Errorf("failed to delete secret: %v", result.Error)
+		return fmt.Errorf("failed to delete secret by tag and version: %v", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("no secret found with tag %s and version %d", tag, version)
 	}
 	return nil
 }
 
-// DeleteAllSecrets deletes all versions of secrets for a repository
-func DeleteAllSecrets(repoID uint) error {
+func DeleteSecretsByTag(repoID uint, tag string) (int, error) {
+	result := DB.Where("repo_id = ? AND tag = ?", repoID, tag).Delete(&Secret{})
+	if result.Error != nil {
+		return 0, fmt.Errorf("failed to delete secrets by tag: %v", result.Error)
+	}
+	return int(result.RowsAffected), nil
+}
+
+func DeleteAllSecrets(repoID uint) (int, error) {
 	result := DB.Where("repo_id = ?", repoID).Delete(&Secret{})
 	if result.Error != nil {
-		return fmt.Errorf("failed to delete all secrets: %v", result.Error)
+		return 0, fmt.Errorf("failed to delete all secrets: %v", result.Error)
 	}
-	return nil
+	return int(result.RowsAffected), nil
 }
 
 // LogAuditEvent logs an audit event

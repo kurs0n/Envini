@@ -90,6 +90,9 @@ export class AuthService {
       const response = await this.authClientService.getUserLogin(jwt);
       return {
         userLogin: response.userLogin,
+        avatarUrl: response.avatarUrl,
+        htmlUrl: response.htmlUrl,
+        name: response.name,
         error: response.error,
         errorDescription: response.errorDescription,
       };

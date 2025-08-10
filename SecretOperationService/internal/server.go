@@ -389,32 +389,38 @@ func (s *Server) DeleteSecret(ctx context.Context, req *secretsservice.DeleteSec
 		}, nil
 	}
 
-	// 3. Delete secrets
-	var deletedVersions int
+	// 3. Delete secrets based on provided parameters
+	var deletedVersions int32
 	var err2 error
 
-	if req.Version == 0 {
-		// Delete all versions
-		err2 = DeleteAllSecrets(repo.ID)
-		if err2 != nil {
-			LogAuditEvent("DELETE", &repo.ID, nil, serviceName, requestID, req.UserLogin, false, "Failed to delete all secrets: "+err2.Error())
-			return &secretsservice.DeleteSecretResponse{
-				Success: false,
-				Error:   "Failed to delete all secrets: " + err2.Error(),
-			}, nil
+	fmt.Println("Deleting secrets for repo:", repo.ID, "Tag:", *req.Tag, "Version:", *req.Version)
+
+	switch {
+	case *req.Tag != "" && *req.Version != 0:
+		err2 = DeleteSecretByTagAndVersion(repo.ID, *req.Tag, int(*req.Version))
+		if err2 == nil {
+			deletedVersions = 1
 		}
-		deletedVersions = -1 // Indicates all versions deleted
-	} else {
-		// Delete specific version
-		err2 = DeleteSecret(repo.ID, int(req.Version))
-		if err2 != nil {
-			LogAuditEvent("DELETE", &repo.ID, nil, serviceName, requestID, req.UserLogin, false, "Failed to delete secret: "+err2.Error())
-			return &secretsservice.DeleteSecretResponse{
-				Success: false,
-				Error:   "Failed to delete secret: " + err2.Error(),
-			}, nil
+	case *req.Tag != "":
+		var count int
+		count, err2 = DeleteSecretsByTag(repo.ID, *req.Tag)
+		if err2 == nil {
+			deletedVersions = int32(count)
 		}
-		deletedVersions = 1
+	default:
+		var count int
+		count, err2 = DeleteAllSecrets(repo.ID)
+		if err2 == nil {
+			deletedVersions = int32(count)
+		}
+	}
+
+	if err2 != nil {
+		LogAuditEvent("DELETE", &repo.ID, nil, serviceName, requestID, req.UserLogin, false, "Failed to delete secret(s): "+err2.Error())
+		return &secretsservice.DeleteSecretResponse{
+			Success: false,
+			Error:   "Failed to delete secret(s): " + err2.Error(),
+		}, nil
 	}
 
 	// 4. Log successful operation
@@ -422,7 +428,7 @@ func (s *Server) DeleteSecret(ctx context.Context, req *secretsservice.DeleteSec
 
 	return &secretsservice.DeleteSecretResponse{
 		Success:         true,
-		DeletedVersions: int32(deletedVersions),
+		DeletedVersions: deletedVersions,
 	}, nil
 }
 

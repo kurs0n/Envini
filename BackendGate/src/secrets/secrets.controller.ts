@@ -117,25 +117,17 @@ export class SecretsController {
     @Param('ownerLogin') ownerLogin: string,
     @Param('repoName') repoName: string,
     @Query('version') version: string,
-    @Query('all') deleteAll: string,
+    @Query('tag') tag: string,
   ): Promise<DeleteSecretResult> {
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       throw new BadRequestException('Authorization header must be in format: Bearer <JWT>');
     }
 
     const jwt = authHeader.substring(7);
-    
-    // If 'all' parameter is present, delete all versions (version = 0)
-    // Otherwise, use the specified version
-    let versionNumber = 0;
-    if (deleteAll !== 'true') {
-      if (!version) {
-        throw new BadRequestException('Version parameter is required unless deleting all versions');
-      }
-      versionNumber = parseInt(version, 10);
-      if (isNaN(versionNumber)) {
-        throw new BadRequestException('Version must be a valid number');
-      }
+    const versionNumber = version ? parseInt(version, 10) : undefined;
+
+    if (version && isNaN(versionNumber as number)) {
+      throw new BadRequestException('Version must be a valid number');
     }
 
     return await this.secretsService.deleteSecret(
@@ -143,6 +135,7 @@ export class SecretsController {
       ownerLogin,
       repoName,
       versionNumber,
+      tag
     );
   }
 

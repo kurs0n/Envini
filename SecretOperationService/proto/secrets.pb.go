@@ -578,7 +578,7 @@ type DownloadSecretRequest struct {
 	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
 	OwnerLogin    string                 `protobuf:"bytes,2,opt,name=owner_login,json=ownerLogin,proto3" json:"owner_login,omitempty"`
 	RepoName      string                 `protobuf:"bytes,3,opt,name=repo_name,json=repoName,proto3" json:"repo_name,omitempty"`
-	Version       *int32                 `protobuf:"varint,4,opt,name=version,proto3,oneof" json:"version,omitempty"` // 0 means latest version
+	Version       *int32                 `protobuf:"varint,4,opt,name=version,proto3,oneof" json:"version,omitempty"`
 	Tag           *string                `protobuf:"bytes,5,opt,name=tag,proto3,oneof" json:"tag,omitempty"`
 	UserLogin     string                 `protobuf:"bytes,6,opt,name=user_login,json=userLogin,proto3" json:"user_login,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -762,8 +762,9 @@ type DeleteSecretRequest struct {
 	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
 	OwnerLogin    string                 `protobuf:"bytes,2,opt,name=owner_login,json=ownerLogin,proto3" json:"owner_login,omitempty"`
 	RepoName      string                 `protobuf:"bytes,3,opt,name=repo_name,json=repoName,proto3" json:"repo_name,omitempty"`
-	Version       int32                  `protobuf:"varint,4,opt,name=version,proto3" json:"version,omitempty"` // 0 means delete all versions
-	UserLogin     string                 `protobuf:"bytes,5,opt,name=user_login,json=userLogin,proto3" json:"user_login,omitempty"`
+	Version       *int32                 `protobuf:"varint,4,opt,name=version,proto3,oneof" json:"version,omitempty"`
+	Tag           *string                `protobuf:"bytes,5,opt,name=tag,proto3,oneof" json:"tag,omitempty"`
+	UserLogin     string                 `protobuf:"bytes,6,opt,name=user_login,json=userLogin,proto3" json:"user_login,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -820,10 +821,17 @@ func (x *DeleteSecretRequest) GetRepoName() string {
 }
 
 func (x *DeleteSecretRequest) GetVersion() int32 {
-	if x != nil {
-		return x.Version
+	if x != nil && x.Version != nil {
+		return *x.Version
 	}
 	return 0
+}
+
+func (x *DeleteSecretRequest) GetTag() string {
+	if x != nil && x.Tag != nil {
+		return *x.Tag
+	}
+	return ""
 }
 
 func (x *DeleteSecretRequest) GetUserLogin() string {
@@ -1197,15 +1205,19 @@ const file_secrets_proto_rawDesc = "" +
 	"uploadedBy\x12\x1d\n" +
 	"\n" +
 	"created_at\x18\a \x01(\tR\tcreatedAt\x12\x14\n" +
-	"\x05error\x18\b \x01(\tR\x05error\"\xaf\x01\n" +
+	"\x05error\x18\b \x01(\tR\x05error\"\xdf\x01\n" +
 	"\x13DeleteSecretRequest\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x1f\n" +
 	"\vowner_login\x18\x02 \x01(\tR\n" +
 	"ownerLogin\x12\x1b\n" +
-	"\trepo_name\x18\x03 \x01(\tR\brepoName\x12\x18\n" +
-	"\aversion\x18\x04 \x01(\x05R\aversion\x12\x1d\n" +
+	"\trepo_name\x18\x03 \x01(\tR\brepoName\x12\x1d\n" +
+	"\aversion\x18\x04 \x01(\x05H\x00R\aversion\x88\x01\x01\x12\x15\n" +
+	"\x03tag\x18\x05 \x01(\tH\x01R\x03tag\x88\x01\x01\x12\x1d\n" +
 	"\n" +
-	"user_login\x18\x05 \x01(\tR\tuserLogin\"q\n" +
+	"user_login\x18\x06 \x01(\tR\tuserLoginB\n" +
+	"\n" +
+	"\b_versionB\x06\n" +
+	"\x04_tag\"q\n" +
 	"\x14DeleteSecretResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12)\n" +
 	"\x10deleted_versions\x18\x02 \x01(\x05R\x0fdeletedVersions\x12\x14\n" +
@@ -1302,6 +1314,7 @@ func file_secrets_proto_init() {
 		return
 	}
 	file_secrets_proto_msgTypes[8].OneofWrappers = []any{}
+	file_secrets_proto_msgTypes[10].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

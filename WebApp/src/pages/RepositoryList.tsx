@@ -58,11 +58,7 @@ export default function RepositoryList() {
 
     fetchRepositories();
   }, [isAuthenticated]);
-
-  const onClickRepo = () => {
-     
-  };
-
+  
   const filteredRepositories = repositories.filter(repo => {
     const matchesSearch =
       repo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -178,12 +174,11 @@ export default function RepositoryList() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {filteredRepositories.map(repo => (
-          <Link
-            to={`/repositories/${repo.ownerLogin}/${repo.name}`}
+          <div
             key={repo.id}
             className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg hover:border-gray-300 transition-all duration-200 transform hover:scale-102"
           >
-            <div className="flex items-start justify-between mb-3">
+            <Link to={`/repositories/${repo.ownerLogin}/${repo.name}`} className="flex items-start justify-between mb-3">
               <div className="flex items-center space-x-2">
                 <Folder className="w-5 h-5 text-gray-600" />
                 <h3 className="text-lg font-semibold text-gray-900">{repo.name}</h3>
@@ -207,7 +202,7 @@ export default function RepositoryList() {
                   </span>
                 )}
               </div>
-            </div>
+            </Link>
             <p className="text-gray-600 text-sm mb-4 line-clamp-2">{repo.description || 'No description available'}</p>
             <div className="flex items-center justify-between pt-3 border-t border-gray-100">
               <div className="flex items-center space-x-1 text-sm text-gray-600">
@@ -223,7 +218,7 @@ export default function RepositoryList() {
                 <span>View on GitHub</span>
               </a>
             </div>
-          </Link>
+          </div>
         ))}
       </div>
 
