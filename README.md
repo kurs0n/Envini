@@ -277,11 +277,14 @@ envini upload kurs0n 8080-emulator .env --tag=production
 ##### Download Secrets
 ```bash
 # Auto-detect repository from git
-envini download .env.downloaded       # Downloads latest version
+envini download .env.downloaded       # Downloads latest from development tag
+envini download .env.downloaded --tag=production  # Downloads latest from production tag
 envini download .env.downloaded --version=1  # Downloads specific version
+envini download .env.downloaded --version=2 --tag=production  # Downloads version 2 from production tag
 
 # Explicit repository
 envini download kurs0n 8080-emulator .env.downloaded
+envini download kurs0n 8080-emulator .env.downloaded --tag=production
 envini download kurs0n 8080-emulator .env.downloaded --version=1
 ```
 
@@ -297,11 +300,13 @@ envini versions kurs0n 8080-emulator
 ##### Delete Secrets
 ```bash
 # Auto-detect repository from git
-envini delete                        # Deletes latest version
+envini delete                        # Deletes latest from development tag
+envini delete --tag=production       # Deletes latest from production tag
 envini delete --version=1           # Deletes specific version
 
 # Explicit repository
 envini delete kurs0n 8080-emulator
+envini delete kurs0n 8080-emulator --tag=production
 envini delete kurs0n 8080-emulator --version=1
 ```
 
@@ -327,12 +332,12 @@ envini help
 - `POST /secrets/upload/:ownerLogin/:repoName` - Upload `.env` file
   - Body: `{ "tag": "production", "envFileContent": "base64_encoded_content" }`
 - `GET /secrets/versions/:ownerLogin/:repoName` - List secret versions
-- `GET /secrets/download/:ownerLogin/:repoName` - Download secret by version
-  - Query: `?version=1` or `?tag=production`
+- `GET /secrets/download/:ownerLogin/:repoName` - Download secret by version or tag
+  - Query: `?version=1`, `?tag=production`, or `?version=2&tag=production`
 - `GET /secrets/content/:ownerLogin/:repoName` - Get secret content as JSON
-  - Query: `?version=1` or `?tag=production`
+  - Query: `?version=1`, `?tag=production`, or `?version=2&tag=production`
 - `DELETE /secrets/delete/:ownerLogin/:repoName` - Delete secret
-  - Query: `?version=1` or `?all=true`
+  - Query: `?version=1`, `?tag=production`, or `?version=2&tag=production`
 
 ## 🔐 Security Features
 

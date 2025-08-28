@@ -2,6 +2,7 @@ package secrets
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -102,10 +103,10 @@ func UploadSecret(ownerLogin string, repoName string, tag string, filePath strin
 		os.Exit(1)
 	}
 
-	// Prepare request
+	// Prepare request - encode content as base64 like WebApp does
 	request := map[string]string{
 		"tag":            tag,
-		"envFileContent": string(content),
+		"envFileContent": base64.StdEncoding.EncodeToString(content),
 	}
 
 	requestBody, err := json.Marshal(request)
@@ -160,11 +161,26 @@ func UploadSecret(ownerLogin string, repoName string, tag string, filePath strin
 	fmt.Printf("   Tag: %s\n", tag)
 }
 
-func DeleteSecret(ownerLogin string, repoName string, version int) {
+func DeleteSecret(ownerLogin string, repoName string, version int, tag string) {
 	jwt := retrieveJwt()
 
-	// Make request
-	url := fmt.Sprintf("%s/secrets/delete/%s/%s?version=%d", BackendGateURL, ownerLogin, repoName, version)
+	// Make request - build URL with version and/or tag parameters like WebApp
+	var url string
+	params := []string{}
+	
+	if version > 0 {
+		params = append(params, fmt.Sprintf("version=%d", version))
+	}
+	if tag != "" {
+		params = append(params, fmt.Sprintf("tag=%s", tag))
+	}
+	
+	// If no specific version or tag provided, default to development tag
+	if len(params) == 0 {
+		params = append(params, "tag=development")
+	}
+	
+	url = fmt.Sprintf("%s/secrets/delete/%s/%s?%s", BackendGateURL, ownerLogin, repoName, strings.Join(params, "&"))
 	req, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
 		fmt.Printf("Failed to create request: %v\n", err)
@@ -205,11 +221,26 @@ func DeleteSecret(ownerLogin string, repoName string, version int) {
 	fmt.Printf("✅ Secret version %d deleted successfully!\n", version)
 }
 
-func DownloadSecret(ownerLogin string, repoName string, version int, outputPath string) {
+func DownloadSecret(ownerLogin string, repoName string, version int, tag string, outputPath string) {
 	jwt := retrieveJwt()
 
-	// Make request
-	url := fmt.Sprintf("%s/secrets/download/%s/%s?version=%d", BackendGateURL, ownerLogin, repoName, version)
+	// Make request - build URL with version and/or tag parameters like WebApp
+	var url string
+	params := []string{}
+	
+	if version > 0 {
+		params = append(params, fmt.Sprintf("version=%d", version))
+	}
+	if tag != "" {
+		params = append(params, fmt.Sprintf("tag=%s", tag))
+	}
+	
+	// If no specific version or tag provided, default to development tag
+	if len(params) == 0 {
+		params = append(params, "tag=development")
+	}
+	
+	url = fmt.Sprintf("%s/secrets/download/%s/%s?%s", BackendGateURL, ownerLogin, repoName, strings.Join(params, "&"))
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		fmt.Printf("Failed to create request: %v\n", err)

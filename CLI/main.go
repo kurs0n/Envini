@@ -205,6 +205,7 @@ func main() {
 
 			outputPath := nonFlagArgs[0]
 			versionStr := flags["version"]
+			tag := flags["tag"]
 			version := 0 // Default to latest version
 			if versionStr != "" && versionStr != "latest" {
 				var err error
@@ -219,11 +220,13 @@ func main() {
 			fmt.Printf("💾 Downloading to: %s\n", outputPath)
 			if version > 0 {
 				fmt.Printf("📋 Version: %d\n", version)
+			} else if tag != "" {
+				fmt.Printf("🏷️  Tag: %s\n", tag)
 			} else {
-				fmt.Printf("📋 Version: latest\n")
+				fmt.Printf("📋 Version: latest (development tag)\n")
 			}
 
-			secrets.DownloadSecret(owner, repo, version, outputPath)
+			secrets.DownloadSecret(owner, repo, version, tag, outputPath)
 		} else {
 			// Explicit owner/repo provided
 			if auth.IfRefreshIsRequired() {
@@ -239,6 +242,7 @@ func main() {
 			}
 
 			versionStr := flags["version"]
+			tag := flags["tag"]
 			version := 0 // Default to latest version
 			if versionStr != "" && versionStr != "latest" {
 				var err error
@@ -249,7 +253,7 @@ func main() {
 				}
 			}
 
-			secrets.DownloadSecret(ownerLogin, repoName, version, outputPath)
+			secrets.DownloadSecret(ownerLogin, repoName, version, tag, outputPath)
 		}
 	case "delete":
 		flags := parseFlags(os.Args[2:])
@@ -271,6 +275,7 @@ func main() {
 			}
 
 			versionStr := flags["version"]
+			tag := flags["tag"]
 			version := 0 // Default to latest version
 			if versionStr != "" && versionStr != "latest" {
 				var err error
@@ -284,11 +289,13 @@ func main() {
 			fmt.Printf("📁 Detected repository: %s/%s\n", owner, repo)
 			if version > 0 {
 				fmt.Printf("🗑️  Deleting version: %d\n", version)
+			} else if tag != "" {
+				fmt.Printf("🗑️  Deleting latest from tag: %s\n", tag)
 			} else {
-				fmt.Printf("🗑️  Deleting latest version\n")
+				fmt.Printf("🗑️  Deleting latest version (development tag)\n")
 			}
 
-			secrets.DeleteSecret(owner, repo, version)
+			secrets.DeleteSecret(owner, repo, version, tag)
 		} else {
 			// Explicit owner/repo provided
 			if auth.IfRefreshIsRequired() {
@@ -300,6 +307,7 @@ func main() {
 			repoName := nonFlagArgs[1]
 
 			versionStr := flags["version"]
+			tag := flags["tag"]
 			version := 0 // Default to latest version
 			if versionStr != "" && versionStr != "latest" {
 				var err error
@@ -310,7 +318,7 @@ func main() {
 				}
 			}
 
-			secrets.DeleteSecret(ownerLogin, repoName, version)
+			secrets.DeleteSecret(ownerLogin, repoName, version, tag)
 		}
 	case "versions":
 		nonFlagArgs := getNonFlagArgs(os.Args[2:])
