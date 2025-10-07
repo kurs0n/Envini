@@ -11,7 +11,7 @@ run_services:
 	@sleep 5
 
 	@echo "Starting Audit DB..."
-	make -C Database_AuditService run &
+	make -C Database_SecretService run &
 	@echo "Waiting for Audit DB to initialize..."
 	@sleep 5
 
@@ -30,7 +30,7 @@ run_services:
 
 stop_services:
 	make -C Database_AuthService stop
-	make -C Database_AuditService stop
+	make -C Database_SecretService stop
 	@pkill -f "go run main.go" || true
 
 clean:
