@@ -129,7 +129,7 @@ export class SecretOperationClientService implements OnModuleInit {
   @Client({
     transport: Transport.GRPC,
     options: {
-      url: "localhost:50053",
+      url: process.env.SECRETS_SERVICE_ADDR || "localhost:50053",
       package: 'secretsservice',
       protoPath: '../proto/secrets.proto',
     },

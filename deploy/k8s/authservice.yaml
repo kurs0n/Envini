@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: authservice
+  namespace: envini
+spec:
+  selector:
+    app: authservice
+  ports:
+    - name: grpc
+      port: 50052
+      targetPort: 50052
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: authservice
+  namespace: envini
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: authservice
+  template:
+    metadata:
+      labels:
+        app: authservice
+    spec:
+      containers:
+        - name: authservice
+          image: europe-central2-docker.pkg.dev/envini/envini/authservice:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 50052
+          env:
+            - name: DB_HOST
+              value: auth-postgres
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_USER
+              value: envini
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-auth-secret
+                  key: password
+            - name: DB_NAME
+              value: envini
+            - name: DB_SSL_MODE
+              value: disable
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: auth-jwt
+                  key: secret
+            - name: GITHUB_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: github-oauth
+                  key: client_id
+          readinessProbe:
+            tcpSocket:
+              port: 50052
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 50052
+            initialDelaySeconds: 10
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: auth-jwt
+  namespace: envini
+stringData:
+  secret: supersecretkey
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: github-oauth
+  namespace: envini
+stringData:
+  client_id: "fromscript"

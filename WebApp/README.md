@@ -25,7 +25,22 @@ A modern React-based web application for managing environment variables across r
 ### Prerequisites
 
 - Node.js 18+ 
-- BackendGate service running on `http://localhost:3000`
+- BackendGate service running (default: `http://localhost:3000`)
+
+### Environment Configuration
+
+The WebApp can be configured using environment variables:
+
+```bash
+# Set backend URL (default: http://localhost:3000)
+VITE_BACKEND_URL=http://your-backend-url:3000
+```
+
+Create a `.env` file in the WebApp directory:
+```bash
+# .env
+VITE_BACKEND_URL=http://localhost:3000
+```
 
 ### Installation
 

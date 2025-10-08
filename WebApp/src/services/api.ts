@@ -3,7 +3,7 @@ import { isEmpty } from '../utils';
 
 // Create axios instance with base configuration
 const api: AxiosInstance = axios.create({
-  baseURL: 'http://localhost:3000', // BackendGate default port
+  baseURL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000', // BackendGate default port
   timeout: 10000,
 });
 

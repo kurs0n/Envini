@@ -12,7 +12,12 @@ import (
 	"time"
 )
 
-const BackendGateURL = "http://localhost:3000"
+func getBackendURL() string {
+	if url := os.Getenv("BACKEND_URL"); url != "" {
+		return url
+	}
+	return "http://localhost:3000" // default fallback
+}
 
 type BackendGateAuthResponse struct {
 	VerificationUri string `json:"verificationUri"`
@@ -76,7 +81,7 @@ func openURL(url string) error {
 }
 
 func startGitHubAuth() (*BackendGateAuthResponse, error) {
-	resp, err := http.Post(BackendGateURL+"/auth/github/start", "application/json", nil)
+	resp, err := http.Post(getBackendURL()+"/auth/github/start", "application/json", nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start GitHub auth: %v", err)
 	}
@@ -96,7 +101,7 @@ func startGitHubAuth() (*BackendGateAuthResponse, error) {
 }
 
 func pollForToken(deviceCode string) (*BackendGateTokenResponse, error) {
-	resp, err := http.Get(fmt.Sprintf("%s/auth/github/poll?deviceCode=%s", BackendGateURL, deviceCode))
+	resp, err := http.Get(fmt.Sprintf("%s/auth/github/poll?deviceCode=%s", getBackendURL(), deviceCode))
 	if err != nil {
 		return nil, fmt.Errorf("failed to poll for token: %v", err)
 	}
@@ -216,7 +221,7 @@ func retrieveJwt() string {
 }
 
 func validateSession(jwt string) bool {
-	resp, err := http.Get(fmt.Sprintf("%s/auth/validate?jwt=%s", BackendGateURL, jwt))
+	resp, err := http.Get(fmt.Sprintf("%s/auth/validate?jwt=%s", getBackendURL(), jwt))
 	if err != nil {
 		return false
 	}
@@ -240,7 +245,7 @@ func validateSession(jwt string) bool {
 }
 
 func getAuthToken(jwt string) (*BackendGateAuthTokenResponse, error) {
-	resp, err := http.Get(fmt.Sprintf("%s/auth/token?jwt=%s", BackendGateURL, jwt))
+	resp, err := http.Get(fmt.Sprintf("%s/auth/token?jwt=%s", getBackendURL(), jwt))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get auth token: %v", err)
 	}

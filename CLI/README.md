@@ -166,6 +166,15 @@ Repository: myuser/myapp
 
 ## 📁 Configuration
 
+### Environment Variables
+The CLI can be configured using environment variables:
+
+```bash
+# Set backend URL (default: http://localhost:3000)
+export BACKEND_URL=http://your-backend-url:3000
+```
+
+### Authentication Storage
 The CLI stores authentication data in:
 ```
 CLI/temp/auth.json

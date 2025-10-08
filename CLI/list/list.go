@@ -8,7 +8,12 @@ import (
 	"os"
 )
 
-const BackendGateURL = "http://localhost:3000"
+func getBackendURL() string {
+	if url := os.Getenv("BACKEND_URL"); url != "" {
+		return url
+	}
+	return "http://localhost:3000" // default fallback
+}
 
 type BackendGateRepo struct {
 	Id             int64  `json:"id"`
@@ -78,7 +83,7 @@ func retrieveJwt() string {
 func ListRepos() {
 	jwt := retrieveJwt()
 
-	req, err := http.NewRequest("GET", BackendGateURL+"/repos/list", nil)
+	req, err := http.NewRequest("GET", getBackendURL()+"/repos/list", nil)
 	if err != nil {
 		fmt.Printf("Failed to create request: %v\n", err)
 		os.Exit(1)
@@ -124,7 +129,7 @@ func ListRepos() {
 func ListReposWithVersions() {
 	jwt := retrieveJwt()
 
-	req, err := http.NewRequest("GET", BackendGateURL+"/repos/list-with-versions", nil)
+	req, err := http.NewRequest("GET", getBackendURL()+"/repos/list-with-versions", nil)
 	if err != nil {
 		fmt.Printf("Failed to create request: %v\n", err)
 		os.Exit(1)
