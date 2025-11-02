@@ -1,8 +1,12 @@
 .PHONY: proto run_services stop_services clean
 
 proto:
-	protoc --proto_path=proto --go_out=paths=source_relative:AuthService/proto --go-grpc_out=paths=source_relative:AuthService/proto proto/auth.proto
-	protoc --proto_path=proto --go_out=paths=source_relative:SecretOperationService/proto --go-grpc_out=paths=source_relative:SecretOperationService/proto proto/secrets.proto
+	protoc --proto_path=proto \
+	--go_out=paths=source_relative:AuthService/proto \
+	--go-grpc_out=paths=source_relative:AuthService/proto proto/auth.proto
+	protoc --proto_path=proto \
+	--go_out=paths=source_relative:SecretOperationService/proto \
+	--go-grpc_out=paths=source_relative:SecretOperationService/proto proto/secrets.proto
 
 run_services:
 	@echo "Starting Auth DB..."

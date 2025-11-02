@@ -56,7 +56,12 @@ export default function RepositoryList() {
       }
     };
 
-    fetchRepositories();
+    if (isAuthenticated) {
+      fetchRepositories();
+    } else {
+      setError("Please log in to view your GitHub repositories");
+      setIsLoading(false);
+    }
   }, [isAuthenticated]);
   
   const filteredRepositories = repositories.filter(repo => {
