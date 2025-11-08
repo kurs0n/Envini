@@ -1,4 +1,4 @@
-export SONAR_TOKEN=sqp_b1f07cdec80c317b56735a927d69b48770ac498d
+export SONAR_TOKEN=sqp_9ae91129b96dfc534769cf378b4b1d6a60f17737
 docker run --rm \
   --platform linux/amd64 \
   --network envini_default \
